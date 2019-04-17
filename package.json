@@ -1,0 +1,27 @@
+{
+  "name": "synopsys-coverity-azure-devops",
+  "version": "1.0.0",
+  "description": "The Azure Dev Ops plugin for Synopsys Coverity.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blackducksoftware/Synopsys-Coverity-Azure-DevOps.git"
+  },
+  "author": "Synopsys",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/blackducksoftware/Synopsys-Coverity-Azure-DevOps/issues"
+  },
+  "homepage": "https://github.com/blackducksoftware/Synopsys-Coverity-Azure-DevOps#readme",
+  "dependencies": {
+    "azure-pipelines-task-lib": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^11.13.4",
+    "@types/q": "^1.5.2"
+  }
+}

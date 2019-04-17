@@ -1,0 +1,36 @@
+{
+    "manifestVersion": 1,
+    "id": "synopsys-coverity-azure-devops",
+    "name": "Synopsys Coverity Azure DevOps",
+    "version": "0.0.1",
+    "publisher": "synopsys",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],    
+    "description": "Tools for building Synopsys Coverity.",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "icons": {
+        "default": "images/synopsys.png"        
+    },
+    "files": [
+        {
+            "path": "coverityTask"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "coverity-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "coverityTask"
+            }
+        }
+    ]
+}

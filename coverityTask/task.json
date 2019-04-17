@@ -1,0 +1,30 @@
+{
+    "id": "ed48033d-8dad-4a5d-ab2d-07649079659e",
+    "name": "synopsys-coverity",
+    "friendlyName": "Synopsys Coverity",
+    "description": "The Azure Dev Ops plugin for Synopsys Coverity.",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "author": "Synopsys",
+    "version": {
+        "Major": 0,
+        "Minor": 1,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Synopsys Coverity Build",
+    "inputs": [
+        {
+            "name": "samplestring",
+            "type": "string",
+            "label": "Sample String",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "A sample string"
+        }
+    ],
+    "execution": {
+        "Node": {
+            "target": "index.js"
+        }
+    }
+}
