@@ -11,15 +11,23 @@
         "Minor": 1,
         "Patch": 0
     },
-    "instanceNameFormat": "Synopsys Coverity Build",
+    "instanceNameFormat": "Synopsys Coverity $(buildCommand)",
     "inputs": [
         {
-            "name": "samplestring",
+            "name": "projectName",
             "type": "string",
-            "label": "Sample String",
+            "label": "Project Name",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "A sample string"
+            "helpMarkDown": "The name of the project to use on the Coverity Server."
+        },
+        {
+            "name": "coverityService",
+            "type": "connectedService:coverity",
+            "label": "Coverity Service Endpoint",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select the Coverity end point to use. Click on 'manage' and add a new Service Endpoint of type 'Coverity'"
         }
     ],
     "execution": {

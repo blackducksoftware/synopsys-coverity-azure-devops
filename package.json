@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/blackducksoftware/Synopsys-Coverity-Azure-DevOps#readme",
   "dependencies": {
-    "azure-pipelines-task-lib": "^2.8.0"
+    "@types/bluebird": "^3.5.26",
+    "azure-pipelines-task-lib": "^2.8.0",
+    "soap": "^0.26.0"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.6",
