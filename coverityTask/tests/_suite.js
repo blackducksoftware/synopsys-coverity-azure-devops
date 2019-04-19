@@ -18,7 +18,11 @@ describe('Test connection to coverity', function () {
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
         assert.equal(tr.errorIssues.length, 0, "should have no errors");
         console.log("Test Finished.");
-        //assert.equal(tr.stdout.indexOf('Hello human') >= 0, true, "should display Hello human");
+        assert_in_stdout(tr, "Project Found", "Unable to find project.");
+        assert_in_stdout(tr, "Stream Found", "Unable to find project.");
         done();
     });
 });
+function assert_in_stdout(tr, str, message) {
+    assert.equal(tr.stdout.indexOf(str) >= 0, true, message);
+}

@@ -23,6 +23,7 @@ async function run() {
         const url = server + "/ws/v9/configurationservice?wsdl";
         
         const projectName = tl.getInput('projectName', true);
+        const streamName = tl.getInput('streamName', true);
 
         var soapClient = await soap.createClientAsync(url) as any;
         var client = soapClient as CoverityClient;
@@ -33,7 +34,7 @@ async function run() {
         var [result, rawResponse, soapheader, rawRequest] = await client.getProjectsAsync();
 
         var projects = result.return;
-        var project = null;
+        var project: any = null;
         projects.forEach((element: any) => {
             if (element.id.name == projectName){
                 project = element;
@@ -43,8 +44,23 @@ async function run() {
         if (project == null) {
             tl.setResult(tl.TaskResult.Failed, 'Given project could not be found on coverity server.');
             return;
+        } else {
+            console.log("Found project.");
         }
 
+        var stream = null;
+        project.streams.forEach((element: any) => {
+            if (element.id.name == streamName){
+                stream = element;
+            }
+        })
+
+        if (project == null) {
+            tl.setResult(tl.TaskResult.Failed, 'Given stream could not be found on the given project.');
+            return;
+        } else {
+            console.log("Found stream.");
+        }
 
         console.log(result.return[0].id);
 

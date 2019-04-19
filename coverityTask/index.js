@@ -43,7 +43,7 @@ var options = {
 };
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var server, username, password, url, projectName_1, soapClient, client, wsSecurity, _a, result, rawResponse, soapheader, rawRequest, projects, project, inputString, err_1;
+        var server, username, password, url, projectName_1, streamName_1, soapClient, client, wsSecurity, _a, result, rawResponse, soapheader, rawRequest, projects, project, stream, inputString, err_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -54,6 +54,7 @@ function run() {
                     password = tl.getEndpointAuthorizationParameter('coverityService', 'password', true);
                     url = server + "/ws/v9/configurationservice?wsdl";
                     projectName_1 = tl.getInput('projectName', true);
+                    streamName_1 = tl.getInput('streamName', true);
                     return [4 /*yield*/, soap.createClientAsync(url)];
                 case 1:
                     soapClient = _b.sent();
@@ -73,6 +74,22 @@ function run() {
                     if (project == null) {
                         tl.setResult(tl.TaskResult.Failed, 'Given project could not be found on coverity server.');
                         return [2 /*return*/];
+                    }
+                    else {
+                        console.log("Found project.");
+                    }
+                    stream = null;
+                    project.streams.forEach(function (element) {
+                        if (element.id.name == streamName_1) {
+                            stream = element;
+                        }
+                    });
+                    if (project == null) {
+                        tl.setResult(tl.TaskResult.Failed, 'Given stream could not be found on the given project.');
+                        return [2 /*return*/];
+                    }
+                    else {
+                        console.log("Found stream.");
                     }
                     console.log(result["return"][0].id);
                     console.log("Finished.");
