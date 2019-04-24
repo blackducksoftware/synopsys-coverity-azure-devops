@@ -20,12 +20,12 @@ describe('Test connection to coverity', function () {
     
         tr.run();
         console.log(tr.stdout);
-        assert.equal(tr.succeeded, true, 'should have succeeded');
+        assert.equal(tr.succeeded, true, 'should have succeeded: ' + tr.errorIssues.join(","));
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
         assert.equal(tr.errorIssues.length, 0, "should have no errors");
         console.log("Test Finished.");
-        assert_in_stdout(tr, "Project Found", "Unable to find project.");
-        assert_in_stdout(tr, "Stream Found", "Unable to find project.");
+        assert_in_stdout(tr, "Project: ", "Unable to find project.");
+        assert_in_stdout(tr, "Stream: ", "Unable to find project.");
         done();
     });
 });

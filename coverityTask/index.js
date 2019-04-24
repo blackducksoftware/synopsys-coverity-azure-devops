@@ -36,72 +36,138 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var tl = require("azure-pipelines-task-lib/task");
-var soap = require("soap");
-var options = {
-    hasNonce: false,
-    digestPassword: false
-};
+var fs = require('fs');
+var path = require('path');
+var coverityInstallation = require("./coverity_installation");
+var coverityApi = require("./coverity_api");
+var coverityRunner = require("./coverity_runner");
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var server, username, password, url, projectName_1, streamName_1, soapClient, client, wsSecurity, _a, result, rawResponse, soapheader, rawRequest, projects, project, stream, inputString, err_1;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var server, username, password, url, projectName, streamName, connected, project, stream, bin, buildDirectory, idir, cov_build, cov_analyze, cov_commit, toolName, tool, covBuild, err_1, text;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
-                    _b.trys.push([0, 3, , 4]);
+                    _a.trys.push([0, 5, , 6]);
                     server = tl.getEndpointUrl('coverityService', true);
-                    console.log(server);
                     username = tl.getEndpointAuthorizationParameter('coverityService', 'username', true);
                     password = tl.getEndpointAuthorizationParameter('coverityService', 'password', true);
                     url = server + "/ws/v9/configurationservice?wsdl";
-                    projectName_1 = tl.getInput('projectName', true);
-                    streamName_1 = tl.getInput('streamName', true);
-                    return [4 /*yield*/, soap.createClientAsync(url)];
+                    projectName = tl.getInput('projectName', true);
+                    streamName = tl.getInput('streamName', true);
+                    console.log("Starting coverity, connecting to:" + server);
+                    return [4 /*yield*/, coverityApi.connectAsync(url, username, password)];
                 case 1:
-                    soapClient = _b.sent();
-                    client = soapClient;
-                    wsSecurity = new soap.WSSecurity(username, password, options);
-                    client.setSecurity(wsSecurity);
-                    return [4 /*yield*/, client.getProjectsAsync()];
+                    connected = _a.sent();
+                    if (!connected || !(coverityApi.client)) {
+                        tl.setResult(tl.TaskResult.Failed, 'Could not connect to coverity server.');
+                        return [2 /*return*/];
+                    }
+                    else {
+                        console.log("Connected!");
+                    }
+                    return [4 /*yield*/, coverityApi.findProjectAsync(projectName)];
                 case 2:
-                    _a = _b.sent(), result = _a[0], rawResponse = _a[1], soapheader = _a[2], rawRequest = _a[3];
-                    projects = result["return"];
-                    project = null;
-                    projects.forEach(function (element) {
-                        if (element.id.name == projectName_1) {
-                            project = element;
-                        }
-                    });
-                    if (project == null) {
+                    project = _a.sent();
+                    if (project) {
+                        console.log("Found project.");
+                    }
+                    else {
                         tl.setResult(tl.TaskResult.Failed, 'Given project could not be found on coverity server.');
                         return [2 /*return*/];
                     }
-                    else {
-                        console.log("Found project.");
+                    fs.writeFileSync("project.json", JSON.stringify(project));
+                    return [4 /*yield*/, coverityApi.findStreamAsync(project, streamName)];
+                case 3:
+                    stream = _a.sent();
+                    if (stream) {
+                        console.log("Found stream.");
                     }
-                    stream = null;
-                    project.streams.forEach(function (element) {
-                        if (element.id.name == streamName_1) {
-                            stream = element;
-                        }
-                    });
-                    if (project == null) {
+                    else {
                         tl.setResult(tl.TaskResult.Failed, 'Given stream could not be found on the given project.');
                         return [2 /*return*/];
                     }
-                    else {
-                        console.log("Found stream.");
+                    console.log("Project: " + project.id.name);
+                    console.log("Stream: " + stream.id.name);
+                    console.log("Succesfully communicated with coverity server.");
+                    console.log("Searching for coverity installation.");
+                    bin = coverityInstallation.findCoverityBin();
+                    if (bin) {
+                        console.log("Found coverity bin: " + bin);
                     }
-                    console.log(result["return"][0].id);
-                    console.log("Finished.");
+                    else {
+                        tl.setResult(tl.TaskResult.Failed, 'Coverity installation could not be found.');
+                        return [2 /*return*/];
+                    }
+                    buildDirectory = tl.getPathInput('cwd', true, false);
+                    idir = path.join(buildDirectory, "idir");
+                    cov_build = ["cov-build", "--dir", idir];
+                    cov_analyze = ["cov-analyze", "--dir", idir];
+                    cov_commit = ["cov-commit-defects", "--dir", idir, "--url", server, "--stream", streamName];
+                    toolName = cov_build[0];
+                    console.log("Searching for coverity tool: " + toolName);
+                    tool = coverityInstallation.findCoverityTool(bin, toolName);
+                    if (tool) {
+                        console.log("Found tool: " + tool);
+                    }
+                    else {
+                        tl.setResult(tl.TaskResult.Failed, 'Coverity tool ' + toolName + ' could not be found.');
+                        return [2 /*return*/];
+                    }
+                    return [4 /*yield*/, coverityRunner.runCoverityTool(tool, buildDirectory, cov_build.slice(1), [])];
+                case 4:
+                    covBuild = _a.sent();
+                    console.log("Finished: " + covBuild);
                     return [2 /*return*/];
-                case 3:
-                    err_1 = _b.sent();
-                    console.log("An error occured.");
-                    tl.setResult(tl.TaskResult.Failed, err_1.message);
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                case 5:
+                    err_1 = _a.sent();
+                    if (err_1.message) {
+                        text = err_1.message;
+                    }
+                    else {
+                        text = err_1.toString();
+                    }
+                    console.log("An error occured: " + text);
+                    tl.setResult(tl.TaskResult.Failed, text);
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
             }
         });
     });
 }
 run();
+/*
+        setEnvironmentVariable(CoverityToolEnvironmentVariable.USER, coverityInstance.getCoverityUsername().orElse(StringUtils.EMPTY));
+        setEnvironmentVariable(CoverityToolEnvironmentVariable.PASSPHRASE, coverityInstance.getCoverityPassword().orElse(StringUtils.EMPTY));
+        setEnvironmentVariable(JenkinsCoverityEnvironmentVariable.COVERITY_URL, coverityInstance.getUrl());
+        setEnvironmentVariable(JenkinsCoverityEnvironmentVariable.COVERITY_PROJECT, projectName);
+        setEnvironmentVariable(JenkinsCoverityEnvironmentVariable.COVERITY_STREAM, streamName);
+        setEnvironmentVariable(JenkinsCoverityEnvironmentVariable.COVERITY_VIEW, viewName);
+        setEnvironmentVariable(JenkinsCoverityEnvironmentVariable.CHANGE_SET, computeChangeSet(changeLogSets, configureChangeSetPatterns));
+        setEnvironmentVariable(JenkinsCoverityEnvironmentVariable.COVERITY_INTERMEDIATE_DIRECTORY, computeIntermediateDirectory(getEnvVars()));
+
+            private String computeIntermediateDirectory(final EnvVars envVars) {
+        final String workspace = envVars.get("WORKSPACE");
+        final Path workspacePath = Paths.get(workspace);
+        final Path intermediateDirectoryPath = workspacePath.resolve("idir");
+        return intermediateDirectoryPath.toString();
+    }
+
+    private String computeChangeSet(final List<ChangeLogSet<?>> changeLogSets, final ConfigureChangeSetPatterns configureChangeSetPatterns) {
+        final ChangeSetFilter changeSetFilter;
+        if (configureChangeSetPatterns == null) {
+            changeSetFilter = ChangeSetFilter.createAcceptAllFilter();
+        } else {
+            changeSetFilter = configureChangeSetPatterns.createChangeSetFilter();
+        }
+
+        return changeLogSets.stream()
+                   .filter(changeLogSet -> !changeLogSet.isEmptySet())
+                   .flatMap(this::toEntries)
+                   .peek(this::logEntry)
+                   .flatMap(this::toAffectedFiles)
+                   .filter(changeSetFilter::shouldInclude)
+                   .map(ChangeLogSet.AffectedFile::getPath)
+                   .collect(Collectors.joining(" "));
+    }
+
+*/ 
