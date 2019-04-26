@@ -18,8 +18,12 @@ describe('Test connection to coverity', function () {
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
         assert.equal(tr.errorIssues.length, 0, "should have no errors");
         console.log("Test Finished.");
+        assert_in_stdout(tr, "OVERALL STATUS: SUCCESS", "Overall status was not success.");
         assert_in_stdout(tr, "Project: ", "Unable to find project.");
         assert_in_stdout(tr, "Stream: ", "Unable to find project.");
+        assert_in_stdout(tr, "cov-build.exe --dir", "Should have run cov-build.");
+        assert_in_stdout(tr, "cov-analyze.exe --dir", "Should have run cov-analyze.");
+        assert_in_stdout(tr, "cov-commit-defects.exe --dir", "Should have run cov-commit-defects.");
         done();
     });
 });

@@ -5,16 +5,21 @@ interface CoverityApi {
     connectAsync(url:string, username: string, password: string): Promise<boolean>,
     findProjectAsync(name:string):Promise<any>,
     findStreamAsync(project:any, name:string):Promise<any>,
+    createProjectAsync(projectSpec:any):Promise<any>,
+    createStreamAsync(projectName:string, streamSpec:any):Promise<any>,
     client?: CoverityClient
 }
 
 interface CoverityClient extends soap.Client {
     getProjectsAsync: (params?: any) => any;
+    createProjectAsync: (params?: any) => any;
+    createStreamInProjectAsync: (param1?: any, param2?: any) => any;
 }
 
 
 var coverity_api: CoverityApi = {
-    connectAsync: async function (url:string, username:string, password:string): Promise<boolean> {
+    connectAsync: async function (server:string, username:string, password:string): Promise<boolean> {
+        var url = server + "/ws/v9/configurationservice?wsdl";
         var soapClient = await soap.createClientAsync(url) as any;
         this.client = soapClient as CoverityClient;
         
@@ -48,6 +53,12 @@ var coverity_api: CoverityApi = {
             }
         })
         return stream;
+    },
+    createProjectAsync: async function (project:CoverityTypes.ProjectSpec) {
+        await this.client!.createProjectAsync({projectSpec: project});
+    },
+    createStreamAsync: async function (projectName: string, stream: CoverityTypes.StreamSpec) {
+        await this.client!.createStreamInProjectAsync({projectId: {name: projectName}, streamSpec: stream});
     },
     client: undefined
 }

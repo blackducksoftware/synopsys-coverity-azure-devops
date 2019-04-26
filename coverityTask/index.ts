@@ -11,15 +11,13 @@ async function run() {
 
         const username: string = tl.getEndpointAuthorizationParameter('coverityService', 'username', true);
         const password: string = tl.getEndpointAuthorizationParameter('coverityService', 'password', true);
-
-        const url = server + "/ws/v9/configurationservice?wsdl";
         
         const projectName = tl.getInput('projectName', true);
         const streamName = tl.getInput('streamName', true);
 
         console.log("Starting coverity, connecting to:" + server);
 
-        var connected = await coverityApi.connectAsync(url, username, password);
+        var connected = await coverityApi.connectAsync(server, username, password);
         if (!connected || !(coverityApi.client)) {
             tl.setResult(tl.TaskResult.Failed, 'Could not connect to coverity server.');
             return;
@@ -65,20 +63,17 @@ async function run() {
         var cov_analyze = ["cov-analyze", "--dir", idir];
         var cov_commit = ["cov-commit-defects", "--dir", idir, "--url", server, "--stream", streamName];
 
-        var toolName = cov_build[0];
-        console.log("Searching for coverity tool: " + toolName);
-
-        var tool = coverityInstallation.findCoverityTool(bin, toolName);
-        if (tool){
-            console.log("Found tool: " + tool);
+        var covBuild = await coverityRunner.runCoverityCommand(bin, buildDirectory, cov_build, []);
+        var covAnalyze = await coverityRunner.runCoverityCommand(bin, buildDirectory, cov_analyze, []);
+        var covCommit = await coverityRunner.runCoverityCommand(bin, buildDirectory, cov_commit, []);
+console.log(covBuild);
+        if (covBuild == 0 && covAnalyze == 0 && covCommit == 0){
+            console.log("OVERALL STATUS: SUCCESS");
         } else {
-            tl.setResult(tl.TaskResult.Failed, 'Coverity tool ' + toolName + ' could not be found.');
-            return;
+            console.log("OVERALL STATUS: FAILURE");
+
         }
 
-        var covBuild = await coverityRunner.runCoverityTool(tool, buildDirectory, cov_build.slice(1), []);
-
-       console.log("Finished: " + covBuild);
         
         return;
     }
@@ -94,6 +89,8 @@ async function run() {
         //console.log(err);
     }
 }
+
+
 
 run();
 

@@ -36,6 +36,31 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var tl = require("azure-pipelines-task-lib/task");
+var coverityInstallation = require("./coverity_installation");
+function runCoverityCommand(bin, cwd, commandArgs, commandMultiArgs) {
+    return __awaiter(this, void 0, void 0, function () {
+        var toolName, remainingArgs, tool, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    toolName = commandArgs[0];
+                    remainingArgs = commandArgs.slice(1);
+                    console.log("Searching for coverity tool: " + toolName);
+                    tool = coverityInstallation.findCoverityTool(bin, toolName);
+                    if (tool) {
+                        console.log("Found tool: " + tool);
+                    }
+                    else {
+                        throw 'Coverity tool ' + toolName + ' could not be found.';
+                    }
+                    return [4 /*yield*/, runCoverityTool(tool, cwd, remainingArgs, commandMultiArgs)];
+                case 1:
+                    result = _a.sent();
+                    return [2 /*return*/, result];
+            }
+        });
+    });
+}
 function runCoverityTool(toolPath, cwd, toolArgs, toolMultiArgs) {
     return __awaiter(this, void 0, void 0, function () {
         var tool, code;
@@ -51,14 +76,17 @@ function runCoverityTool(toolPath, cwd, toolArgs, toolMultiArgs) {
                     toolMultiArgs.forEach(function (toolArg) {
                         tool.line(toolArg);
                     });
+                    console.log("Running coverity command.");
                     return [4 /*yield*/, tool.exec()];
                 case 1:
                     code = _a.sent();
+                    console.log("Finished running coverity task: " + code);
                     return [2 /*return*/, code];
             }
         });
     });
 }
 module.exports = {
-    runCoverityTool: runCoverityTool
+    runCoverityTool: runCoverityTool,
+    runCoverityCommand: runCoverityCommand
 };

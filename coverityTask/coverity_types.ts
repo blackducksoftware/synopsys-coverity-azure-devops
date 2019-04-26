@@ -35,3 +35,38 @@ export interface Project {
     userModified: string;
 }
 
+export interface GroupSpec {
+    displayName: string;
+    name: string;
+}
+
+export interface RoleSpec {
+    name: string;
+}
+
+export interface TriageStoreId {
+    name: string;
+}
+
+export interface RoleAssignmentSpec {
+    groupId: GroupSpec;
+    roleAssignmentType: Id;
+    roleId: RoleSpec;
+    type: string;
+    username: string;
+}
+
+export interface ProjectSpec {
+    description: string;
+    name: string;
+    roleAssignments: RoleAssignmentSpec[];
+    //ignoring: streams, streamLinks
+}
+
+export interface StreamSpec {
+    description: string;
+    enableDesktopAnalysis: boolean;
+    language: string;
+    name: string;
+    triageStoreId: TriageStoreId[];
+}

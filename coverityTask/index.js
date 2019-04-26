@@ -43,19 +43,18 @@ var coverityApi = require("./coverity_api");
 var coverityRunner = require("./coverity_runner");
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var server, username, password, url, projectName, streamName, connected, project, stream, bin, buildDirectory, idir, cov_build, cov_analyze, cov_commit, toolName, tool, covBuild, err_1, text;
+        var server, username, password, projectName, streamName, connected, project, stream, bin, buildDirectory, idir, cov_build, cov_analyze, cov_commit, covBuild, covAnalyze, covCommit, err_1, text;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 5, , 6]);
+                    _a.trys.push([0, 7, , 8]);
                     server = tl.getEndpointUrl('coverityService', true);
                     username = tl.getEndpointAuthorizationParameter('coverityService', 'username', true);
                     password = tl.getEndpointAuthorizationParameter('coverityService', 'password', true);
-                    url = server + "/ws/v9/configurationservice?wsdl";
                     projectName = tl.getInput('projectName', true);
                     streamName = tl.getInput('streamName', true);
                     console.log("Starting coverity, connecting to:" + server);
-                    return [4 /*yield*/, coverityApi.connectAsync(url, username, password)];
+                    return [4 /*yield*/, coverityApi.connectAsync(server, username, password)];
                 case 1:
                     connected = _a.sent();
                     if (!connected || !(coverityApi.client)) {
@@ -103,22 +102,24 @@ function run() {
                     cov_build = ["cov-build", "--dir", idir];
                     cov_analyze = ["cov-analyze", "--dir", idir];
                     cov_commit = ["cov-commit-defects", "--dir", idir, "--url", server, "--stream", streamName];
-                    toolName = cov_build[0];
-                    console.log("Searching for coverity tool: " + toolName);
-                    tool = coverityInstallation.findCoverityTool(bin, toolName);
-                    if (tool) {
-                        console.log("Found tool: " + tool);
-                    }
-                    else {
-                        tl.setResult(tl.TaskResult.Failed, 'Coverity tool ' + toolName + ' could not be found.');
-                        return [2 /*return*/];
-                    }
-                    return [4 /*yield*/, coverityRunner.runCoverityTool(tool, buildDirectory, cov_build.slice(1), [])];
+                    return [4 /*yield*/, coverityRunner.runCoverityCommand(bin, buildDirectory, cov_build, [])];
                 case 4:
                     covBuild = _a.sent();
-                    console.log("Finished: " + covBuild);
-                    return [2 /*return*/];
+                    return [4 /*yield*/, coverityRunner.runCoverityCommand(bin, buildDirectory, cov_analyze, [])];
                 case 5:
+                    covAnalyze = _a.sent();
+                    return [4 /*yield*/, coverityRunner.runCoverityCommand(bin, buildDirectory, cov_commit, [])];
+                case 6:
+                    covCommit = _a.sent();
+                    console.log(covBuild);
+                    if (covBuild == 0 && covAnalyze == 0 && covCommit == 0) {
+                        console.log("OVERALL STATUS: SUCCESS");
+                    }
+                    else {
+                        console.log("OVERALL STATUS: FAILURE");
+                    }
+                    return [2 /*return*/];
+                case 7:
                     err_1 = _a.sent();
                     if (err_1.message) {
                         text = err_1.message;
@@ -128,8 +129,8 @@ function run() {
                     }
                     console.log("An error occured: " + text);
                     tl.setResult(tl.TaskResult.Failed, text);
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });

@@ -37,12 +37,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var soap = require("soap");
 var coverity_api = {
-    connectAsync: function (url, username, password) {
+    connectAsync: function (server, username, password) {
         return __awaiter(this, void 0, void 0, function () {
-            var soapClient, options, wsSecurity;
+            var url, soapClient, options, wsSecurity;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, soap.createClientAsync(url)];
+                    case 0:
+                        url = server + "/ws/v9/configurationservice?wsdl";
+                        return [4 /*yield*/, soap.createClientAsync(url)];
                     case 1:
                         soapClient = _a.sent();
                         this.client = soapClient;
@@ -88,6 +90,30 @@ var coverity_api = {
                     }
                 });
                 return [2 /*return*/, stream];
+            });
+        });
+    },
+    createProjectAsync: function (project) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.createProjectAsync({ projectSpec: project })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    },
+    createStreamAsync: function (projectName, stream) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.createStreamInProjectAsync({ projectId: { name: projectName }, streamSpec: stream })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
             });
         });
     },
