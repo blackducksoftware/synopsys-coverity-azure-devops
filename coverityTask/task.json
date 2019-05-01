@@ -12,22 +12,167 @@
         "Patch": 0
     },
     "instanceNameFormat": "Synopsys Coverity $(buildCommand)",
+    "groups": [
+        {
+            "name": "server",
+            "displayName": "Coverity Server",
+            "isExpanded": true
+        },
+        {
+            "name": "issues",
+            "displayName": "Issues",
+            "isExpanded": true
+        },
+        {
+            "name": "build",
+            "displayName": "Build",
+            "isExpanded": true
+        }
+    ],
     "inputs": [
+        {
+            "name": "coverityService",
+            "type": "connectedService:coverity",
+            "label": "Coverity Service Endpoint",
+            "groupName": "server",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select the Coverity end point to use. Click on 'manage' and add a new Service Endpoint of type 'Coverity'"
+        },
         {
             "name": "projectName",
             "type": "string",
-            "label": "Project Name",
+            "label": "Project name",
+            "groupName": "server",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "The name of the project to use on the Coverity Server."
         },
         {
-            "name": "coverityService",
-            "type": "connectedService:coverity",
-            "label": "Coverity Service Endpoint",
+            "name": "streamName",
+            "type": "string",
+            "label": "Stream name",
+            "groupName": "server",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Select the Coverity end point to use. Click on 'manage' and add a new Service Endpoint of type 'Coverity'"
+            "helpMarkDown": "The name of the project to use on the Coverity Server."
+        },
+        {
+            "name": "checkIssues",
+            "type": "boolean",
+            "label": "Check for issues",
+            "groupName": "issues",
+            "defaultValue": false
+        },
+        {
+            "name": "issueView",
+            "type": "string",
+            "label": "Coverity view",
+            "groupName": "issues",
+            "required": true,
+            "defaultValue": "",
+            "helpMarkDown": "The name of the Coverity view that you would like to check for issues.",
+            "visibleRule": "checkIssues = true"
+        },
+        {
+            "name": "issueStatus",
+            "type": "pickList",
+            "label": "Build status if issues are present",
+            "groupName": "issues",           
+            "defaultValue": "success",
+            "helpMarkDown": "The name of the project to use on the Coverity Server.",
+            "visibleRule": "checkIssues = true",
+            "options": {
+                "success": "Success (Log issues only)",
+                "failure": "Failure",
+                "unstable": "Unstable"
+            }
+        },
+        {
+            "name": "coverityRunType",
+            "type": "pickList",
+            "label": "Coverity run configuration",
+            "groupName": "build",
+            "defaultValue": "buildanalyzecommit",
+            "helpMarkDown": "The name of the project to use on the Coverity Server.",
+            "options": {
+                "buildanalyzecommit": "Run Coverity build, analyze and commit defects",
+                "custom": "Run custom Coverity commands"
+            }
+        },
+        {
+            "name": "coverityAnalysisType",
+            "type": "pickList",
+            "label": "Analysis type",
+            "groupName": "build",
+            "defaultValue": "full",
+            "helpMarkDown": "Specify the type of analysis you would like to run.",
+            "visibleRule": "coverityRunType = buildanalyzecommit",
+            "options": {
+                "full": "Full Analysis",
+                "incremental": "Incremental Analysis"
+            }
+        },
+        {
+            "name": "buildCommand",
+            "type": "string",
+            "label": "Build command",
+            "groupName": "build",
+            "defaultValue": "",
+            "visibleRule": "coverityRunType = buildanalyzecommit"
+        },
+        {
+            "name": "customCommandArgs",
+            "type": "boolean",
+            "label": "Provide command-specific arguments",
+            "groupName": "build",
+            "visibleRule": "coverityRunType = buildanalyzecommit",
+            "defaultValue": false
+        },
+        {
+            "name": "covBuildArgs",
+            "type": "string",
+            "label": "cov-build",
+            "groupName": "build",
+            "defaultValue": "",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-build command. Affects full and incremental analysis.",
+            "visibleRule": "customCommandArgs = true"
+        },
+        {
+            "name": "covAnalyzeArgs",
+            "type": "string",
+            "label": "cov-analyze",
+            "groupName": "build",
+            "defaultValue": "",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-analyze command. Affects full analysis.",
+            "visibleRule": "customCommandArgs = true"
+        },
+        {
+            "name": "covDesktopArgs",
+            "type": "string",
+            "label": "cov-run-desktop",
+            "groupName": "build",
+            "defaultValue": "",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-run-desktop command. Affects incremental analysis.",
+            "visibleRule": "customCommandArgs = true"
+        },
+        {
+            "name": "covCommitArgs",
+            "type": "string",
+            "label": "cov-commit-defects",
+            "groupName": "build",
+            "defaultValue": "",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-commit-defects command. Affects both full and incremental analysis.",
+            "visibleRule": "customCommandArgs = true"
+        },
+        {
+            "name": "customCoverityCommands",
+            "type": "multiline",
+            "label": "Custom coverity commands",
+            "groupName": "build",
+            "defaultValue": "",
+            "helpMarkDown": "List of Coverity commands seperated by newlines. Commands should look like cov-build or cov-analyze. All TFS environment variables as well as Coverity Extension environment variables are available.",
+            "visibleRule": "coverityRunType = custom"
         }
     ],
     "execution": {
