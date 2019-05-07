@@ -35,61 +35,48 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var tl = require("azure-pipelines-task-lib/task");
-var coverityInstallation = require("./coverity_installation");
-function runCoverityCommand(bin, cwd, command) {
-    return __awaiter(this, void 0, void 0, function () {
-        var toolName, tool, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    toolName = command.tool;
-                    console.log("Searching for coverity tool: " + toolName);
-                    tool = coverityInstallation.findCoverityTool(bin, toolName);
-                    if (tool) {
-                        console.log("Found tool: " + tool);
-                    }
-                    else {
-                        throw 'Coverity tool ' + toolName + ' could not be found.';
-                    }
-                    return [4 /*yield*/, runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs)];
-                case 1:
-                    result = _a.sent();
-                    return [2 /*return*/, result];
-            }
+var request = require("request-promise-native");
+var coverity_api = {
+    connectAsync: function (server, username, password) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                this.auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
+                this.url = server;
+                return [2 /*return*/, true];
+            });
         });
-    });
-}
-function runCoverityTool(toolPath, cwd, toolArgs, toolMultiArgs) {
-    return __awaiter(this, void 0, void 0, function () {
-        var tool, code;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    tool = tl.tool(toolPath);
-                    tl.mkdirP(cwd);
-                    tl.cd(cwd);
-                    toolArgs.forEach(function (toolArg) {
-                        tool.arg(toolArg);
-                    });
-                    toolMultiArgs.forEach(function (toolArg) {
-                        tool.line(toolArg);
-                    });
-                    console.log("Running coverity command.");
-                    console.log(cwd);
-                    console.log(toolPath);
-                    console.log(toolArgs);
-                    console.log(toolMultiArgs);
-                    return [4 /*yield*/, tool.exec()];
-                case 1:
-                    code = _a.sent();
-                    console.log("Finished running coverity task: " + code);
-                    return [2 /*return*/, code];
-            }
+    },
+    findViews: function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var url, response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = this.url + "/api/views/v1";
+                        return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true })];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
+            });
         });
-    });
-}
-module.exports = {
-    runCoverityTool: runCoverityTool,
-    runCoverityCommand: runCoverityCommand
+    },
+    findDefects: function (streamId, projectId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var url, response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = this.url + "/api/viewContents/issues/v1/" + streamId + "?projectId=" + projectId;
+                        return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true })];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
+            });
+        });
+    },
+    url: undefined,
+    auth: undefined
 };
+module.exports = coverity_api;

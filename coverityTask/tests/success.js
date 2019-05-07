@@ -1,31 +1,36 @@
 "use strict";
 exports.__esModule = true;
+console.log('test starts');
 var tmrm = require("azure-pipelines-task-lib/mock-run");
 var path = require("path");
+console.log("normal imports done");
+var testUtil = require('./test_util');
+console.log("test imports done");
+console.log('creating task');
 var taskPath = path.join(__dirname, '..', 'index.js');
 var tmr = new tmrm.TaskMockRunner(taskPath);
-//Set the coverity service username, password and url as the following environment variables.
-//process.env[<key>] = "<value>";
-//ENDPOINT_URL_COVERITYSERVICE
-//ENDPOINT_AUTH_PARAMETER_COVERITYSERVICE_USERNAME
-//ENDPOINT_AUTH_PARAMETER_COVERITYSERVICE_PASSWORD
-var cwd = "C:\\Program Files (x86)\\Jenkins\\workspace\\Coverity-Test";
-var home = "C:\\Program Files\\Coverity\\Coverity Static Analysis";
+console.log('reading config');
+var config = require("./config.json");
+console.log('populating variables');
+var cwd = config.cwd;
+var home = config.home;
 var bin = home + "\\bin";
-var projectName = 'Detect Project';
-var streamName = 'Development Stream';
-var endpointEnvId = 'COVERITYSERVICE';
+var projectName = config.availableProjectName;
+var streamName = config.availableStreamName;
+var server = config.server;
+var viewName = "All Projects";
+console.log('set inputs');
 tmr.setInput('projectName', projectName);
 tmr.setInput('streamName', streamName);
+tmr.setInput('issueView', "Outstanding Issues");
 tmr.setInput('cwd', cwd);
-var execs = {};
-mockCommand(execs, bin + "\\cov-build.exe --dir " + cwd + "\\idir", 0, "", "");
-mockCommand(execs, bin + "\\cov-analyze.exe --dir " + cwd + "\\idir", 0, "", "");
-mockCommand(execs, bin + "\\cov-commit-defects.exe --dir " + cwd + "\\idir --url " + server + " --stream " + streamName, 0, "", "");
-var mtt = require('azure-pipelines-task-lib/mock-toolrunner');
-mtt.setAnswers({ exec: execs });
-tmr.registerMock('azure-pipelines-task-lib/toolrunner', mtt);
+tmr.setInput('coverityRunType', "buildanalyzecommit");
+tmr.setInput('coverityAnalysisType', "full");
+console.log('test utils');
+testUtil.setToolHome(config.toolHome);
+testUtil.setServiceInputs(server, config.username, config.password);
+testUtil.registerMockBaseCommmands(tmr, bin, cwd, server, streamName);
+//var mockApi = require("./coverity_soap_api_mock")(true, projectName, streamName);
+//tmr.registerMock('./coverity_soap_api', mockApi);
+console.log('test ready');
 tmr.run();
-function mockCommand(execs, command, code, out, err) {
-    execs[command] = { code: code, stdout: out, stderr: err };
-}

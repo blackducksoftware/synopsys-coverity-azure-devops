@@ -70,3 +70,24 @@ export interface StreamSpec {
     name: string;
     triageStoreId: TriageStoreId[];
 }
+
+export interface IssueViewList {
+    views: IssueView[];
+}
+
+export interface IssueView {
+    id: number;
+    name: string;
+}
+
+export class CoverityCommand {
+    tool: string;
+    commandArgs: string[] = [];
+    commandMultiArgs: string[] = [];
+
+    constructor(tool:string, commandArgs: string[], commandMultiArgs: string[]) {
+        this.tool = tool;
+        this.commandArgs = commandArgs;
+        this.commandMultiArgs = commandMultiArgs;
+    }
+}

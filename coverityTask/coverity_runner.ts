@@ -1,11 +1,12 @@
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
 import trm = require('azure-pipelines-task-lib/toolrunner');
+import CoverityTypes = require("./coverity_types");
 var coverityInstallation = require("./coverity_installation");
 
-async function runCoverityCommand(bin: string, cwd: string, commandArgs: string[], commandMultiArgs: string[]) {
-    var toolName = commandArgs[0];
-    var remainingArgs = commandArgs.slice(1);
+
+async function runCoverityCommand(bin: string, cwd: string, command: CoverityTypes.CoverityCommand) {
+    var toolName = command.tool; //FilenameUtils.removeExtension(arguments.get(0).toLowerCase(Locale.ENGLISH));
 
     console.log("Searching for coverity tool: " + toolName);
 
@@ -16,7 +17,7 @@ async function runCoverityCommand(bin: string, cwd: string, commandArgs: string[
         throw 'Coverity tool ' + toolName + ' could not be found.';
     }
 
-    var result = await runCoverityTool(tool, cwd, remainingArgs, commandMultiArgs);
+    var result = await runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs);
     return result;
 }
 
@@ -35,7 +36,10 @@ async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[]
     });
     
     console.log("Running coverity command.");
-
+    console.log(cwd)
+    console.log(toolPath)
+    console.log(toolArgs)
+    console.log(toolMultiArgs)
     var code: number = await tool.exec();
 
     console.log("Finished running coverity task: " + code);

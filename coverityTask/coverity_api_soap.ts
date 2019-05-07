@@ -1,7 +1,7 @@
 import soap = require("soap");
 import CoverityTypes = require("./coverity_types");
 
-interface CoverityApi {
+interface CoveritySoapApi {
     connectAsync(url:string, username: string, password: string): Promise<boolean>,
     findProjectAsync(name:string):Promise<any>,
     findStreamAsync(project:any, name:string):Promise<any>,
@@ -17,7 +17,7 @@ interface CoverityClient extends soap.Client {
 }
 
 
-var coverity_api: CoverityApi = {
+var coverity_api: CoveritySoapApi = {
     connectAsync: async function (server:string, username:string, password:string): Promise<boolean> {
         var url = server + "/ws/v9/configurationservice?wsdl";
         var soapClient = await soap.createClientAsync(url) as any;

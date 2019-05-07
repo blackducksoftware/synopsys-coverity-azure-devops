@@ -1,6 +1,6 @@
 import soap = require("soap");
 import CoverityTypes = require("../coverity_types");
-import CoverityApi = require("../coverity_api");
+import CoverityApi = require("../coverity_api_soap");
 
 function newMock(shouldConnect: boolean, projectName?:string, streamName?:string) {
     var stream: CoverityTypes.Stream|null = null;
