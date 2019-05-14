@@ -9,14 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var coverityApi = require("../coverity_api_soap");
-var server = "http://emmett:1701";
-var username = "admin";
-var password = "coverity";
+var config = require("../tests/config.json");
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log("Starting coverity, connecting to:" + server);
-            var connected = yield coverityApi.connectAsync(server, username, password);
+            console.log("Starting coverity, connecting to:" + config.server);
+            var connected = yield coverityApi.connectAsync(config.server, config.username, config.password);
             if (!connected || !(coverityApi.client)) {
                 console.log("Failed to connect.");
                 return;

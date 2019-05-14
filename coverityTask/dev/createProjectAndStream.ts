@@ -1,17 +1,14 @@
 var coverityApi = require("../coverity_api_soap");
 import CoverityTypes = require("../coverity_types");
 
-var server = "http://emmett:1701";
-var username = "admin";
-var password = "coverity";
-
+var config = require("../tests/config.json");
 
 async function run() {
     try {
 
-        console.log("Starting coverity, connecting to:" + server);
+        console.log("Starting coverity, connecting to:" + config.server);
 
-        var connected = await coverityApi.connectAsync(server, username, password);
+        var connected = await coverityApi.connectAsync(config.server, config.username, config.password);
         if (!connected || !(coverityApi.client)) {
             console.log("Failed to connect.");
             return;

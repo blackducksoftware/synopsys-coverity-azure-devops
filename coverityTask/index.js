@@ -45,27 +45,32 @@ var coverityRestApi = require("./coverity_api_rest");
 var coverityRunner = require("./coverity_runner");
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var server, username, password, result, args, buildDirectory, idir, commands, err_1, text;
+        var coverityService, server, username, password, result, args, buildDirectory, idir, commands, err_1, text;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 6, , 7]);
-                    server = tl.getEndpointUrl('coverityService', true);
-                    username = tl.getEndpointAuthorizationParameter('coverityService', 'username', true);
-                    password = tl.getEndpointAuthorizationParameter('coverityService', 'password', true);
+                    console.log("Starting Coverity for ADO.");
+                    coverityService = tl.getInput('coverityService', true);
+                    server = tl.getEndpointUrl(coverityService, false);
+                    username = tl.getEndpointAuthorizationParameter(coverityService, 'username', false);
+                    password = tl.getEndpointAuthorizationParameter(coverityService, 'password', false);
+                    console.log("Connecting to Coverity.");
                     return [4 /*yield*/, connect(server, username, password)];
                 case 1:
                     result = _a.sent();
                     if (!result) return [3 /*break*/, 5];
+                    console.log("Preparing to run Coverity commands.");
                     return [4 /*yield*/, find_extra_args()];
                 case 2:
                     args = _a.sent();
-                    buildDirectory = tl.getPathInput('cwd', true, false);
+                    buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
                     idir = path.join(buildDirectory, "idir");
                     return [4 /*yield*/, find_commands(result.server, idir, result.streamName)];
                 case 3:
                     commands = _a.sent();
                     run_commands(result.coverityBin, buildDirectory, commands, args);
+                    console.log("Preparing to check for issues.");
                     return [4 /*yield*/, check_issues(server, username, password, result.projectKey)];
                 case 4:
                     _a.sent();
@@ -112,9 +117,9 @@ function check_issues(server, username, password, projectId) {
                     views = _a.sent();
                     possible = new Array();
                     viewId = null;
-                    console.log("Foud views: " + views.views.length);
+                    console.log("Discovered views: " + views.views.length);
+                    console.log("Looking for view: " + viewName);
                     views.views.forEach(function (element) {
-                        console.log(element);
                         if (element.type && element.type == "issues") {
                             if (element.name == viewName) {
                                 viewId = element.id;
@@ -125,7 +130,7 @@ function check_issues(server, username, password, projectId) {
                         }
                     });
                     if (viewId) {
-                        console.log("Found issue view: " + viewId);
+                        console.log("Found view: " + viewId);
                     }
                     else {
                         console.log(possible);
@@ -174,27 +179,39 @@ function find_extra_args() {
 }
 function run_commands(bin, buildDirectory, commands, extraArgs) {
     return __awaiter(this, void 0, void 0, function () {
-        var _i, commands_1, command, extra, commandRun;
+        var _i, commands_1, command, extra, commandRun, e_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log("Will run coverity commands:" + commands.length);
                     _i = 0, commands_1 = commands;
                     _a.label = 1;
                 case 1:
-                    if (!(_i < commands_1.length)) return [3 /*break*/, 4];
+                    if (!(_i < commands_1.length)) return [3 /*break*/, 7];
                     command = commands_1[_i];
+                    console.log("Running coverity tool:" + command.tool);
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 4, , 5]);
                     extra = extraArgs[command.tool];
                     if (extra) {
                         command.commandMultiArgs.push(extra);
                     }
                     return [4 /*yield*/, coverityRunner.runCoverityCommand(bin, buildDirectory, command)];
-                case 2:
-                    commandRun = _a.sent();
-                    _a.label = 3;
                 case 3:
+                    commandRun = _a.sent();
+                    return [3 /*break*/, 5];
+                case 4:
+                    e_1 = _a.sent();
+                    console.log("Failed to run coverity tool.");
+                    return [3 /*break*/, 5];
+                case 5:
+                    console.log("Finished running coverity tool.");
+                    _a.label = 6;
+                case 6:
                     _i++;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/];
+                case 7: return [2 /*return*/];
             }
         });
     });

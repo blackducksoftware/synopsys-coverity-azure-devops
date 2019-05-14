@@ -1,4 +1,6 @@
 
+import soap = require("soap");
+
 export interface Id {
     name: string;
 }
@@ -90,4 +92,27 @@ export class CoverityCommand {
         this.commandArgs = commandArgs;
         this.commandMultiArgs = commandMultiArgs;
     }
+}
+
+export interface CoveritySoapApi {
+    connectAsync(url:string, username: string, password: string): Promise<boolean>,
+    findProjectAsync(name:string):Promise<any>,
+    findStreamAsync(project:any, name:string):Promise<any>,
+    createProjectAsync(projectSpec:any):Promise<any>,
+    createStreamAsync(projectName:string, streamSpec:any):Promise<any>,
+    client?: CoverityClient
+}
+
+export interface CoverityClient extends soap.Client {
+    getProjectsAsync: (params?: any) => any;
+    createProjectAsync: (params?: any) => any;
+    createStreamInProjectAsync: (param1?: any, param2?: any) => any;
+}
+
+export interface CoverityRestApi {
+    connectAsync(url:string, username: string, password: string): Promise<boolean>,
+    findViews():Promise<IssueViewList>,
+    findDefects(project:any, name:string):Promise<any>,
+    auth?:string
+    server?:string
 }

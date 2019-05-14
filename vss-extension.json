@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "synopsys-coverity-azure-devops",
     "name": "Synopsys Coverity Azure DevOps",
-    "version": "0.0.1",
+    "version": "0.0.19",
     "publisher": "synopsys",
     "targets": [
         {
@@ -46,13 +46,6 @@
                     "displayName": "Coverity URL",
                     "helpText": "Provide the URL for your Coverity Server - please include the port if other than 80 (http) or 443 (https)"
                 },
-                "dataSources": [
-                    {
-                        "name": "Coverity Projects",
-                        "endpointUrl": "{{endpoint.url}}api/projects/index",
-                        "resultSelector": "jsonpath:$[*].nm"
-                    }
-                ],
                 "authenticationSchemes": [
                     {
                         "name": "Basic Authorization",

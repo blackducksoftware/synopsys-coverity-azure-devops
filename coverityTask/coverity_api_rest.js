@@ -36,12 +36,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var request = require("request-promise-native");
+var urljoin = require('url-join');
 var coverity_api = {
     connectAsync: function (server, username, password) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 this.auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
-                this.url = server;
+                this.server = server;
                 return [2 /*return*/, true];
             });
         });
@@ -52,7 +53,7 @@ var coverity_api = {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        url = this.url + "/api/views/v1";
+                        url = urljoin(this.server, "/api/views/v1");
                         return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true })];
                     case 1:
                         response = _a.sent();
@@ -67,7 +68,7 @@ var coverity_api = {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        url = this.url + "/api/viewContents/issues/v1/" + streamId + "?projectId=" + projectId;
+                        url = urljoin(this.server, "/api/viewContents/issues/v1/", streamId, "?projectId=", projectId);
                         return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true })];
                     case 1:
                         response = _a.sent();
@@ -76,7 +77,7 @@ var coverity_api = {
             });
         });
     },
-    url: undefined,
+    server: undefined,
     auth: undefined
 };
 module.exports = coverity_api;

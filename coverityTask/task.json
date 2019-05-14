@@ -8,8 +8,8 @@
     "author": "Synopsys",
     "version": {
         "Major": 0,
-        "Minor": 1,
-        "Patch": 0
+        "Minor": 2,
+        "Patch": 9
     },
     "instanceNameFormat": "Synopsys Coverity $(buildCommand)",
     "groups": [
@@ -87,6 +87,15 @@
                 "failure": "Failure",
                 "unstable": "Unstable"
             }
+        },
+        {
+            "name": "coverityBuildDirectory",
+            "type": "string",
+            "label": "Coverity Build Directory",
+            "groupName": "build",
+            "defaultValue": "$(Build.Repository.LocalPath)",
+            "required": true,
+            "helpMarkDown": "The directory to run the coverity tool in."
         },
         {
             "name": "coverityRunType",

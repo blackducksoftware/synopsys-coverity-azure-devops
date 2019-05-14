@@ -34,9 +34,12 @@ console.log('set inputs');
 tmr.setInput('projectName', projectName);
 tmr.setInput('streamName', streamName);
 tmr.setInput('issueView', "Outstanding Issues");
-tmr.setInput('cwd', cwd);
+tmr.setInput('coverityBuildDirectory', cwd);
 tmr.setInput('coverityRunType', "buildanalyzecommit");
 tmr.setInput('coverityAnalysisType', "full");
+var answers:any = {"checkPath": {}};
+answers.checkPath[cwd] = true;
+tmr.setAnswers(answers);
 
 console.log('test utils');
 

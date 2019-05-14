@@ -22,7 +22,7 @@ async function runCoverityCommand(bin: string, cwd: string, command: CoverityTyp
 }
 
 async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[], toolMultiArgs: string[]):Promise<number> {
-    var tool: trm.ToolRunner = tl.tool(toolPath);
+    var tool = tl.tool(toolPath);
 
     tl.mkdirP(cwd);
     tl.cd(cwd);
