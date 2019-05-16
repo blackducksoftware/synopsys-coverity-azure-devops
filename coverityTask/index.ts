@@ -20,7 +20,24 @@ async function run() {
         var verified_inputs = await verify_inputs(inputs);
 
         console.log("Preparing to run Coverity commands.");
-        await run_commands(bin, inputs.workingDir, inputs.commands, inputs.extraArgs);
+        console.log("Using working directory: " + inputs.workingDir);
+        console.log("Using intermediate directory: " + inputs.idir);
+   
+        var env: CoverityTypes.CoverityEnvironment = {
+            coverityToolHome: bin, 
+            username: inputs.username,
+            password: inputs.password,
+            url: inputs.server,
+            project: inputs.projectName,
+            stream: inputs.streamName,
+            idir: inputs.idir,
+            view: inputs.viewName,
+            change_set: undefined
+        };
+
+        await run_commands(bin, inputs.workingDir, inputs.commands, env);
+
+        console.log("Finished runnning commands.");
 
         if (verified_inputs.issueId){
             console.log("Preparing to check for defects.");
@@ -52,8 +69,7 @@ interface CoverityInputs {
     workingDir: string,
     idir: string,
     commands: CoverityTypes.CoverityCommand[],
-    viewName?: string,
-    extraArgs: Map<string, string>
+    viewName?: string
 }
 
 interface CoverityVerifiedInputs {
@@ -87,7 +103,6 @@ async function verify_inputs(raw_input: CoverityInputs): Promise<CoverityVerifie
     if (raw_input.viewName){
         issue_view_id = await find_issue_view_id(restClient, raw_input.viewName);
     }
-    
 
     return {
         coveritySoapApi: soapClient,
@@ -115,29 +130,26 @@ async function find_inputs(): Promise<CoverityInputs> {
     const streamName = tl.getInput('streamName', true);
 
     const viewName = tl.getInput("issueView", false);
-    var extra_args = new Map<string, string>();
-    extra_args.set("cov-build", tl.getInput("covBuildArgs", false));
-    extra_args.set("cov-analyze", tl.getInput("covAnalyzeArgs", false));
-    extra_args.set("cov-commit-defects", tl.getInput("covCommitArgs", false));
-    extra_args.set("cov-run-desktop", tl.getInput("covDesktopArgs", false));
     
-    var buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
-    var idir: string = path.join(buildDirectory, "idir");
+    const buildCommand = tl.getInput("buildCommand", false);
+    const buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
+    const idir: string = path.join(buildDirectory, "idir");
 
     var commands = new Array<CoverityTypes.CoverityCommand>();
     if (runType == "buildanalyzecommit"){
-        var cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir], []);
+        var cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
+        cov_build.commandMultiArgs.push(buildCommand);
         commands.push(cov_build);
         if (analysisType == "full"){
-            var cov_middle = new CoverityTypes.CoverityCommand("cov-analyze", ["--dir", idir], []);
+            var cov_middle = new CoverityTypes.CoverityCommand("cov-analyze", ["--dir", idir], array_with_value_or_empty(tl.getInput("covAnalyzeArgs", false)));
             commands.push(cov_middle);
         }else if (analysisType == "incremental"){
-            var cov_middle = new CoverityTypes.CoverityCommand("cov-run-desktop", ["--dir", idir, "--url", server, "--stream", streamName], []);
+            var cov_middle = new CoverityTypes.CoverityCommand("cov-run-desktop", ["--dir", idir, "--url", server, "--stream", streamName], array_with_value_or_empty(tl.getInput("covDesktopArgs", false)));
             commands.push(cov_middle);
         } else {
             fail_and_throw('Unkown coverity analysis type: ' + runType);
         }
-        var cov_commit = new CoverityTypes.CoverityCommand("cov-commit-defects", ["--dir", idir, "--url", server, "--stream", streamName], []);
+        var cov_commit = new CoverityTypes.CoverityCommand("cov-commit-defects", ["--dir", idir, "--url", server, "--stream", streamName], array_with_value_or_empty(tl.getInput("covCommitArgs", false)));
         commands.push(cov_commit);
     } else if (runType == "custom"){
         var rawCommands = customCommands.split("\n");
@@ -158,9 +170,16 @@ async function find_inputs(): Promise<CoverityInputs> {
         workingDir: buildDirectory,
         idir: idir,
         commands: commands,
-        viewName: viewName,
-        extraArgs: extra_args
+        viewName: viewName
     };
+}
+
+function array_with_value_or_empty(value:string|null|undefined){
+    if (value){
+        return [value];
+    } else {
+        return [];
+    }
 }
 
 function fail_and_throw(msg:string) {
@@ -243,6 +262,7 @@ async function find_issue_view_id(coverityRestApi: CoverityTypes.CoverityRestApi
 }
 
 async function set_task_status_from_defects(coverityRestApi:CoverityTypes.CoverityRestApi, projectId: string, viewId: string) {
+    console.log("Loading view.");
     var defects = await coverityRestApi.findDefects(viewId, projectId);
     console.log("Defects found: " + defects.viewContentsV1.totalRows);
     if (defects.totalRows > 0){
@@ -262,16 +282,12 @@ async function set_task_status_from_defects(coverityRestApi:CoverityTypes.Coveri
     }
 }
 
-async function run_commands(bin:string, buildDirectory:string, commands:Array<CoverityTypes.CoverityCommand>, extraArgs:any) {
-    console.log("Will run coverity commands:" + commands.length);
+async function run_commands(bin:string, buildDirectory:string, commands:Array<CoverityTypes.CoverityCommand>, env: CoverityTypes.CoverityEnvironment) {
+    console.log("Will run coverity tools:" + commands.length);
     for (var command of commands) {
         console.log("Running coverity tool:" + command.tool);
         try {
-            var extra = extraArgs[command.tool];
-            if (extra){
-                command.commandMultiArgs.push(extra);
-            }
-            var commandRun = await coverityRunner.runCoverityCommand(bin, buildDirectory, command);
+            var commandRun = await coverityRunner.runCoverityCommand(bin, buildDirectory, command, env);
         } catch (e){
             console.log("Failed to run coverity tool.");
         }

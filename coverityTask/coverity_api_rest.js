@@ -68,7 +68,9 @@ var coverity_api = {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        url = urljoin(this.server, "/api/viewContents/issues/v1/", streamId, "?projectId=", projectId);
+                        console.log("Getting views for stream " + streamId.toString() + " and project " + projectId.toString());
+                        url = urljoin(this.server, "/api/viewContents/issues/v1/", streamId.toString(), "?projectId=" + projectId.toString());
+                        console.log("Fetching url: " + url);
                         return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true })];
                     case 1:
                         response = _a.sent();

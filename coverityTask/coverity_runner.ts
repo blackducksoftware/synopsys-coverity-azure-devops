@@ -5,7 +5,7 @@ import CoverityTypes = require("./coverity_types");
 var coverityInstallation = require("./coverity_installation");
 
 
-async function runCoverityCommand(bin: string, cwd: string, command: CoverityTypes.CoverityCommand) {
+async function runCoverityCommand(bin: string, cwd: string, command: CoverityTypes.CoverityCommand, covEnv: CoverityTypes.CoverityEnvironment) {
     var toolName = command.tool; //FilenameUtils.removeExtension(arguments.get(0).toLowerCase(Locale.ENGLISH));
 
     console.log("Searching for coverity tool: " + toolName);
@@ -17,11 +17,13 @@ async function runCoverityCommand(bin: string, cwd: string, command: CoverityTyp
         throw 'Coverity tool ' + toolName + ' could not be found.';
     }
 
-    var result = await runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs);
+    var result = await runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs, covEnv);
     return result;
 }
 
-async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[], toolMultiArgs: string[]):Promise<number> {
+async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[], toolMultiArgs: string[], covEnv: CoverityTypes.CoverityEnvironment):Promise<number> {
+    console.log("Preparing coverity command for tool: " + toolPath);
+
     var tool = tl.tool(toolPath);
 
     tl.mkdirP(cwd);
@@ -35,14 +37,24 @@ async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[]
         tool.line(toolArg);
     });
     
-    console.log("Running coverity command.");
-    console.log(cwd)
-    console.log(toolPath)
-    console.log(toolArgs)
-    console.log(toolMultiArgs)
-    var code: number = await tool.exec();
+    console.log("Executing command.");
 
-    console.log("Finished running coverity task: " + code);
+    var env = {
+        "PATH+COVERITYTOOLBIN": covEnv.coverityToolHome,
+        "COV_USER": covEnv.username,
+        "COVERITY_PASSPHRASE": covEnv.password,
+        "COV_URL": covEnv.url,
+        "COV_PROJECT": covEnv.project,
+        "COV_STREAM": covEnv.stream,
+        "COV_VIEW": covEnv.view,
+        "COV_DIR": covEnv.idir,
+        "CHANGE_SET": covEnv.change_set
+    };
+
+    var options: any = { env: env };
+    var code: number = await tool.exec(options);
+
+    console.log("Finished command, return code: " + code);
     return code;
 }
 

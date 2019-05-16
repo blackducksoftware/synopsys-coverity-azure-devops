@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "synopsys-coverity-azure-devops",
     "name": "Synopsys Coverity Azure DevOps",
-    "version": "0.0.19",
+    "version": "0.0.31",
     "publisher": "synopsys",
     "targets": [
         {

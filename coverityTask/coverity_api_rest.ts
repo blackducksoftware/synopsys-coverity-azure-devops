@@ -14,7 +14,9 @@ var coverity_api: CoverityTypes.CoverityRestApi = {
         return response;
     },
     findDefects: async function(streamId:string, projectId:string):Promise<any> {
-        var url = urljoin(this.server, "/api/viewContents/issues/v1/",  streamId, "?projectId=",  projectId);
+        console.log("Getting views for stream " + streamId.toString() + " and project " + projectId.toString());
+        var url = urljoin(this.server, "/api/viewContents/issues/v1/",  streamId.toString(), "?projectId=" + projectId.toString());
+        console.log("Fetching url: " + url);
         var response:any = await request({ url : url, headers : { "Authorization" : this.auth }, json: true });
         return response;
     },

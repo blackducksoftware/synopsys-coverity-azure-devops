@@ -116,3 +116,15 @@ export interface CoverityRestApi {
     auth?:string
     server?:string
 }
+
+export interface CoverityEnvironment {
+    coverityToolHome: string,
+    username: string, 
+    password: string,
+    url:string, 
+    project:string,
+    stream:string,
+    idir: string
+    view?:string,
+    change_set?: string
+}

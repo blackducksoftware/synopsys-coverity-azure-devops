@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var tl = require("azure-pipelines-task-lib/task");
 var coverityInstallation = require("./coverity_installation");
-function runCoverityCommand(bin, cwd, command) {
+function runCoverityCommand(bin, cwd, command, covEnv) {
     return __awaiter(this, void 0, void 0, function () {
         var toolName, tool, result;
         return __generator(this, function (_a) {
@@ -52,7 +52,7 @@ function runCoverityCommand(bin, cwd, command) {
                     else {
                         throw 'Coverity tool ' + toolName + ' could not be found.';
                     }
-                    return [4 /*yield*/, runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs)];
+                    return [4 /*yield*/, runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs, covEnv)];
                 case 1:
                     result = _a.sent();
                     return [2 /*return*/, result];
@@ -60,12 +60,13 @@ function runCoverityCommand(bin, cwd, command) {
         });
     });
 }
-function runCoverityTool(toolPath, cwd, toolArgs, toolMultiArgs) {
+function runCoverityTool(toolPath, cwd, toolArgs, toolMultiArgs, covEnv) {
     return __awaiter(this, void 0, void 0, function () {
-        var tool, code;
+        var tool, env, options, code;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log("Preparing coverity command for tool: " + toolPath);
                     tool = tl.tool(toolPath);
                     tl.mkdirP(cwd);
                     tl.cd(cwd);
@@ -75,15 +76,23 @@ function runCoverityTool(toolPath, cwd, toolArgs, toolMultiArgs) {
                     toolMultiArgs.forEach(function (toolArg) {
                         tool.line(toolArg);
                     });
-                    console.log("Running coverity command.");
-                    console.log(cwd);
-                    console.log(toolPath);
-                    console.log(toolArgs);
-                    console.log(toolMultiArgs);
-                    return [4 /*yield*/, tool.exec()];
+                    console.log("Executing command.");
+                    env = {
+                        "PATH+COVERITYTOOLBIN": covEnv.coverityToolHome,
+                        "COV_USER": covEnv.username,
+                        "COVERITY_PASSPHRASE": covEnv.password,
+                        "COV_URL": covEnv.url,
+                        "COV_PROJECT": covEnv.project,
+                        "COV_STREAM": covEnv.stream,
+                        "COV_VIEW": covEnv.view,
+                        "COV_DIR": covEnv.idir,
+                        "CHANGE_SET": covEnv.change_set
+                    };
+                    options = { env: env };
+                    return [4 /*yield*/, tool.exec(options)];
                 case 1:
                     code = _a.sent();
-                    console.log("Finished running coverity task: " + code);
+                    console.log("Finished command, return code: " + code);
                     return [2 /*return*/, code];
             }
         });
