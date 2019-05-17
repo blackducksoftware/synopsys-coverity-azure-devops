@@ -7,9 +7,9 @@
     "category": "Utility",
     "author": "Synopsys",
     "version": {
-        "Major": 0,
-        "Minor": 2,
-        "Patch": 21
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
     },
     "instanceNameFormat": "Synopsys Coverity $(buildCommand)",
     "groups": [
@@ -37,7 +37,7 @@
             "groupName": "server",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Select the Coverity end point to use. Click on 'manage' and add a new Service Endpoint of type 'Coverity'"
+            "helpMarkDown": "The Synopsys Coverity connect instance this task will run against.<br>The url, username and password will be stored in COV_URL, COV_USER and COVERITY_PASSPHRASE and will affect both the full and incremental analysis."
         },
         {
             "name": "projectName",
@@ -46,7 +46,7 @@
             "groupName": "server",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "The name of the project to use on the Coverity Server."
+            "helpMarkDown": "The name of the project to use on the Coverity Server.<br>The resulting project name is stored in COV_PROJECT and will affect both the full and incremental analysis.<br>The task will first verify that this project exists on the connect instance."
         },
         {
             "name": "streamName",
@@ -55,14 +55,15 @@
             "groupName": "server",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "The name of the project to use on the Coverity Server."
+            "helpMarkDown": "The name of the stream to use on the Coverity Server.<br>The resulting stream name is stored in COV_STREAM and will affect both the full and incremental analysis.<br>The task will first verify that this stream exists on the given project in the connect instance."
         },
         {
             "name": "checkIssues",
             "type": "boolean",
             "label": "Check for issues",
             "groupName": "issues",
-            "defaultValue": false
+            "defaultValue": false,
+            "helpMarkDown": "If enabled, this task will check a given Coverity View for defects and update the task status based on those results."
         },
         {
             "name": "issueView",
@@ -71,7 +72,7 @@
             "groupName": "issues",
             "required": true,
             "defaultValue": "",
-            "helpMarkDown": "The name of the Coverity view that you would like to check for issues.",
+            "helpMarkDown": "The name of the view you would like to check for issues on the Coverity Server.<br>The resulting view name is stored in COV_VIEW and will affect both the full and incremental analysis.<br>The task will first verify that this stream exists on the given project in the connect instance.",
             "visibleRule": "checkIssues = true"
         },
         {
@@ -80,7 +81,7 @@
             "label": "Build status if issues are present",
             "groupName": "issues",           
             "defaultValue": "success",
-            "helpMarkDown": "The name of the project to use on the Coverity Server.",
+            "helpMarkDown": "The task status to set if issues are found in the configured view.",
             "visibleRule": "checkIssues = true",
             "options": {
                 "success": "Success (Log issues only)",
@@ -95,7 +96,7 @@
             "groupName": "build",
             "defaultValue": "$(Build.Repository.LocalPath)",
             "required": true,
-            "helpMarkDown": "The directory to run the coverity tool in."
+            "helpMarkDown": "The working directory to use for coverity when executing the commands. The recommended default is $(Build.Repository.LocalPath)."
         },
         {
             "name": "coverityRunType",
@@ -103,7 +104,6 @@
             "label": "Coverity run configuration",
             "groupName": "build",
             "defaultValue": "buildanalyzecommit",
-            "helpMarkDown": "The name of the project to use on the Coverity Server.",
             "options": {
                 "buildanalyzecommit": "Run Coverity build, analyze and commit defects",
                 "custom": "Run custom Coverity commands"
@@ -115,7 +115,7 @@
             "label": "Analysis type",
             "groupName": "build",
             "defaultValue": "full",
-            "helpMarkDown": "Specify the type of analysis you would like to run.",
+            "helpMarkDown": "Specify the type of analysis you would like to run.<br /><b>Full Analysis</b> will run cov-build, cov-analyze and cov-commit-defects in that order.<br /><b>Incremental Analysis</b> will run the cov-build, cov-run-desktop, and cov-commit-defects commands in that order.<br /><br />The commands will be run with the following parameters:<br /><b>cov-build</b> --dir <i>{build directory}</i>/idir <i>{build command}</i><br /><b>cov-analyze</b> --dir <i>{build directory}</i>/idir<br /><b>cov-run-desktop</b> --dir <i>{build directory}</i>/idir --url <i>{coverity service url}</i> <i>{change set}</i><br /><b>cov-commit-defects</b> --dir <i>{build directory}</i>/idir --url <i>{coverity service url}</i> --stream <i>{stream name}</i><br />",
             "visibleRule": "coverityRunType = buildanalyzecommit",
             "options": {
                 "full": "Full Analysis",
@@ -144,7 +144,7 @@
             "label": "cov-build",
             "groupName": "build",
             "defaultValue": "",
-            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-build command. Affects full and incremental analysis.",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-build command. Affects full and incremental analysis. <br /> <br /> <b> NOTE: </b> The following options are automatically provied and should not be provided here. If you wish to override the provided arguments, use 'Run custom Coverity command' instead.<br /> --dir <i>{build directory}</i>/idir <i>{build command}</i>",
             "visibleRule": "customCommandArgs = true"
         },
         {
@@ -153,7 +153,7 @@
             "label": "cov-analyze",
             "groupName": "build",
             "defaultValue": "",
-            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-analyze command. Affects full analysis.",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-analyze command. Affects full and incremental analysis. <br /> <br /> <b> NOTE: </b> The following options are automatically provied and should not be provided here. If you wish to override the provided arguments, use 'Run custom Coverity command' instead.<br /> --dir <i>{build directory}</i>/idir",
             "visibleRule": "customCommandArgs = true"
         },
         {
@@ -162,7 +162,7 @@
             "label": "cov-run-desktop",
             "groupName": "build",
             "defaultValue": "",
-            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-run-desktop command. Affects incremental analysis.",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-run-desktop command. Affects full and incremental analysis. <br /> <br /> <b> NOTE: </b> The following options are automatically provied and should not be provided here. If you wish to override the provided arguments, use 'Run custom Coverity command' instead.<br /> --dir <i>{build directory}</i>/idir --url <i>{coverity service url}</i> <i>{change set}</i>",
             "visibleRule": "customCommandArgs = true"
         },
         {
@@ -171,7 +171,7 @@
             "label": "cov-commit-defects",
             "groupName": "build",
             "defaultValue": "",
-            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-commit-defects command. Affects both full and incremental analysis.",
+            "helpMarkDown": "Specify additional arguments to apply to the invocation of the cov-commit-defects command. Affects full and incremental analysis. <br /> <br /> <b> NOTE: </b> The following options are automatically provied and should not be provided here. If you wish to override the provided arguments, use 'Run custom Coverity command' instead.<br /> --dir <i>{build directory}</i>/idir --url <i>{coverity service url}</i> --stream <i>{stream name}</i><br />",
             "visibleRule": "customCommandArgs = true"
         },
         {
@@ -180,7 +180,7 @@
             "label": "Custom coverity commands",
             "groupName": "build",
             "defaultValue": "",
-            "helpMarkDown": "List of Coverity commands seperated by newlines. Commands should look like cov-build or cov-analyze. All TFS environment variables as well as Coverity Extension environment variables are available.",
+            "helpMarkDown": "List of Coverity commands seperated by newlines. Commands should look like cov-build or cov-analyze. All ADO environment variables are available using $(variable) as well as Coverity Extension environment variables using $coverityvariable.",
             "visibleRule": "coverityRunType = custom"
         }
     ],

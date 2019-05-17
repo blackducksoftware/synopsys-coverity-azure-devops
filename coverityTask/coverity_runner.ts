@@ -5,24 +5,55 @@ import CoverityTypes = require("./coverity_types");
 var coverityInstallation = require("./coverity_installation");
 
 
-async function runCoverityCommand(bin: string, cwd: string, command: CoverityTypes.CoverityCommand, covEnv: CoverityTypes.CoverityEnvironment) {
-    var toolName = command.tool; //FilenameUtils.removeExtension(arguments.get(0).toLowerCase(Locale.ENGLISH));
+async function environmentToVariables(covEnv: CoverityTypes.CoverityEnvironment): Promise<any> {
+    var env:any = {
+        "PATH+COVERITYTOOLBIN": covEnv.coverityToolHome,
+        "COV_USER": covEnv.username,
+        "COVERITY_PASSPHRASE": covEnv.password,
+        "COV_URL": covEnv.url,
+        "COV_PROJECT": covEnv.project,
+        "COV_STREAM": covEnv.stream,
+        "COV_VIEW": covEnv.view,
+        "COV_DIR": covEnv.idir,
+        "CHANGE_SET": covEnv.change_set
+    };
 
-    console.log("Searching for coverity tool: " + toolName);
+    var set = [];
+    for (var e in env){
+        set.push(e);
+        process.env[e] = env[e];
+    }
+    console.log("Updated the following environment variables: " + set.join(","));
 
-    var tool = coverityInstallation.findCoverityTool(bin, toolName);
+    return env;
+}
+
+async function replaceArg(env: any, arg: string): Promise<string> {
+    for (var e in env){
+        var key = "$" + e;
+        var value = env[e];
+        arg = arg.split(key).join(value);
+    }
+    return arg;
+}
+
+
+async function runCoverityCommand(bin: string, cwd: string, command: CoverityTypes.CoverityCommand) {
+    console.log("Searching for coverity tool: " + command.tool);
+
+    var tool = coverityInstallation.findCoverityTool(bin, command.tool);
     if (tool){
         console.log("Found tool: " + tool);
     } else {
-        throw 'Coverity tool ' + toolName + ' could not be found.';
+        throw 'Coverity tool ' + command.tool + ' could not be found.';
     }
 
-    var result = await runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs, covEnv);
+    var result = await runCoverityTool(tool, cwd, command.commandArgs, command.commandMultiArgs);
     return result;
 }
 
-async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[], toolMultiArgs: string[], covEnv: CoverityTypes.CoverityEnvironment):Promise<number> {
-    console.log("Preparing coverity command for tool: " + toolPath);
+async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[], toolMultiArgs: string[]):Promise<number> {
+    console.log("Building coverty command: " + toolPath);
 
     var tool = tl.tool(toolPath);
 
@@ -38,21 +69,8 @@ async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[]
     });
     
     console.log("Executing command.");
-
-    var env = {
-        "PATH+COVERITYTOOLBIN": covEnv.coverityToolHome,
-        "COV_USER": covEnv.username,
-        "COVERITY_PASSPHRASE": covEnv.password,
-        "COV_URL": covEnv.url,
-        "COV_PROJECT": covEnv.project,
-        "COV_STREAM": covEnv.stream,
-        "COV_VIEW": covEnv.view,
-        "COV_DIR": covEnv.idir,
-        "CHANGE_SET": covEnv.change_set
-    };
-
-    var options: any = { env: env };
-    var code: number = await tool.exec(options);
+    
+    var code: number = await tool.exec();
 
     console.log("Finished command, return code: " + code);
     return code;
@@ -60,5 +78,7 @@ async function runCoverityTool(toolPath: string, cwd: string, toolArgs: string[]
 
 module.exports = {
     runCoverityTool: runCoverityTool,
-    runCoverityCommand: runCoverityCommand
+    runCoverityCommand: runCoverityCommand,
+    environmentToVariables: environmentToVariables,
+    replaceArg: replaceArg
 }

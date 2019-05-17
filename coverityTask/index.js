@@ -45,27 +45,27 @@ var coverityRestApi = require("./coverity_api_rest");
 var coverityRunner = require("./coverity_runner");
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var bin, inputs, verified_inputs, env, err_1, text;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var bin, inputs, verified_inputs, env, variables, _i, _a, command, i, _b, _c, commandRun, err_1, text;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
-                    _a.trys.push([0, 8, , 9]);
+                    _d.trys.push([0, 16, , 17]);
                     console.log("Starting Coverity for ADO.");
                     console.log("Finding Coverity bin.");
                     return [4 /*yield*/, find_coverity_bin()];
                 case 1:
-                    bin = _a.sent();
+                    bin = _d.sent();
                     console.log("Reading ADO inputs.");
                     return [4 /*yield*/, find_inputs()];
                 case 2:
-                    inputs = _a.sent();
+                    inputs = _d.sent();
                     console.log("Verifying ADO inputs.");
                     return [4 /*yield*/, verify_inputs(inputs)];
                 case 3:
-                    verified_inputs = _a.sent();
-                    console.log("Preparing to run Coverity commands.");
+                    verified_inputs = _d.sent();
                     console.log("Using working directory: " + inputs.workingDir);
                     console.log("Using intermediate directory: " + inputs.idir);
+                    console.log("Setting up the environment for coverity commands.");
                     env = {
                         coverityToolHome: bin,
                         username: inputs.username,
@@ -77,24 +77,54 @@ function run() {
                         view: inputs.viewName,
                         change_set: undefined
                     };
-                    return [4 /*yield*/, run_commands(bin, inputs.workingDir, inputs.commands, env)];
+                    return [4 /*yield*/, coverityRunner.environmentToVariables(env)];
                 case 4:
-                    _a.sent();
-                    console.log("Finished runnning commands.");
-                    if (!verified_inputs.issueId) return [3 /*break*/, 6];
-                    console.log("Preparing to check for defects.");
-                    return [4 /*yield*/, set_task_status_from_defects(verified_inputs.coverityRestApi, verified_inputs.project.id.name, verified_inputs.issueId)];
+                    variables = _d.sent();
+                    console.log("Will run (" + inputs.commands.length + ") coverity commands.");
+                    _i = 0, _a = inputs.commands;
+                    _d.label = 5;
                 case 5:
-                    _a.sent();
-                    return [3 /*break*/, 7];
+                    if (!(_i < _a.length)) return [3 /*break*/, 12];
+                    command = _a[_i];
+                    console.log("Substituting (" + command.commandMultiArgs.length + ") arguments with coverity variables if applicable.");
+                    i = 0;
+                    _d.label = 6;
                 case 6:
-                    console.log("Will not check for defects.");
-                    _a.label = 7;
+                    if (!(i < command.commandMultiArgs.length)) return [3 /*break*/, 9];
+                    _b = command.commandMultiArgs;
+                    _c = i;
+                    return [4 /*yield*/, coverityRunner.replaceArg(variables, command.commandMultiArgs[i])];
                 case 7:
-                    console.log("OVERALL STATUS: SUCCESS");
-                    return [3 /*break*/, 9];
+                    _b[_c] = _d.sent();
+                    _d.label = 8;
                 case 8:
-                    err_1 = _a.sent();
+                    i++;
+                    return [3 /*break*/, 6];
+                case 9:
+                    console.log("Running coverity command.");
+                    return [4 /*yield*/, coverityRunner.runCoverityCommand(bin, inputs.workingDir, command)];
+                case 10:
+                    commandRun = _d.sent();
+                    _d.label = 11;
+                case 11:
+                    _i++;
+                    return [3 /*break*/, 5];
+                case 12:
+                    console.log("Finished runnning commands.");
+                    if (!(verified_inputs.issueId && inputs.issueStatus)) return [3 /*break*/, 14];
+                    console.log("Will check for defects.");
+                    return [4 /*yield*/, set_task_status_from_defects(verified_inputs.coverityRestApi, verified_inputs.project.id.name, verified_inputs.issueId, inputs.issueStatus)];
+                case 13:
+                    _d.sent();
+                    return [3 /*break*/, 15];
+                case 14:
+                    console.log("Will not check for defects.");
+                    _d.label = 15;
+                case 15:
+                    console.log("Finished Coverity for ADO.");
+                    return [3 /*break*/, 17];
+                case 16:
+                    err_1 = _d.sent();
                     if (err_1.message) {
                         text = err_1.message;
                     }
@@ -103,8 +133,8 @@ function run() {
                     }
                     console.log("An error occured: " + text);
                     tl.setResult(tl.TaskResult.Failed, text);
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
+                    return [3 /*break*/, 17];
+                case 17: return [2 /*return*/];
             }
         });
     });
@@ -153,8 +183,9 @@ function verify_inputs(raw_input) {
 }
 function find_inputs() {
     return __awaiter(this, void 0, void 0, function () {
-        var coverityService, server, username, password, runType, analysisType, customCommands, projectName, streamName, viewName, buildCommand, buildDirectory, idir, commands, cov_build, cov_middle, cov_middle, cov_commit, rawCommands;
+        var coverityService, server, username, password, runType, analysisType, customCommands, projectName, streamName, viewName, issueStatus, checkIssues, buildCommand, buildDirectory, idir, commands, cov_build, cov_middle, cov_middle, cov_commit, rawCommands;
         return __generator(this, function (_a) {
+            console.log("Reading coverity service input.");
             coverityService = tl.getInput('coverityService', true);
             server = tl.getEndpointUrl(coverityService, false);
             username = tl.getEndpointAuthorizationParameter(coverityService, 'username', false);
@@ -164,12 +195,21 @@ function find_inputs() {
             customCommands = tl.getInput('customCoverityCommands', true);
             projectName = tl.getInput('projectName', true);
             streamName = tl.getInput('streamName', true);
-            viewName = tl.getInput("issueView", false);
+            console.log("Determining build and issue inputs.");
+            viewName = undefined;
+            issueStatus = undefined;
+            checkIssues = tl.getInput("checkIssues", true);
+            if (checkIssues) {
+                viewName = tl.getInput("issueView", false);
+                issueStatus = tl.getInput("issueStatus", true);
+            }
             buildCommand = tl.getInput("buildCommand", false);
             buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
             idir = path.join(buildDirectory, "idir");
+            console.log("Parsing command inputs.");
             commands = new Array();
             if (runType == "buildanalyzecommit") {
+                console.log("Parsing build analyze and commit inputs.");
                 cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
                 cov_build.commandMultiArgs.push(buildCommand);
                 commands.push(cov_build);
@@ -188,10 +228,14 @@ function find_inputs() {
                 commands.push(cov_commit);
             }
             else if (runType == "custom") {
+                console.log("Parsing custom command inputs.");
                 rawCommands = customCommands.split("\n");
                 rawCommands.forEach(function (command) {
-                    var toolName = command.split(' ')[0];
-                    commands.push(new CoverityTypes.CoverityCommand(toolName, [], [command]));
+                    var parts = command.split(' ');
+                    var toolName = parts[0];
+                    var args = parts.slice(1);
+                    console.log("Parsed command with tool '" + toolName + "' and custom args of length " + args.length);
+                    commands.push(new CoverityTypes.CoverityCommand(toolName, [], args));
                 });
             }
             else {
@@ -206,7 +250,8 @@ function find_inputs() {
                     workingDir: buildDirectory,
                     idir: idir,
                     commands: commands,
-                    viewName: viewName
+                    viewName: viewName,
+                    issueStatus: issueStatus
                 }];
         });
     });
@@ -229,7 +274,7 @@ function connect_soap(server, username, password) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log("Communicating over soap to:" + server);
+                    console.log("Testing connection over soap.");
                     return [4 /*yield*/, coveritySoapApi.connectAsync(server, username, password)];
                 case 1:
                     connected = _a.sent();
@@ -250,7 +295,7 @@ function connect_rest(server, username, password) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log("Communicating over rest to:" + server);
+                    console.log("Testing connection over rest.");
                     return [4 /*yield*/, coverityRestApi.connectAsync(server, username, password)];
                 case 1:
                     connected = _a.sent();
@@ -270,7 +315,9 @@ function find_project_and_stream(coveritySoapApi, projectName, streamName) {
         var project, stream;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, coveritySoapApi.findProjectAsync(projectName)];
+                case 0:
+                    console.log("Finding project and stream.");
+                    return [4 /*yield*/, coveritySoapApi.findProjectAsync(projectName)];
                 case 1:
                     project = _a.sent();
                     if (project) {
@@ -311,7 +358,7 @@ function find_issue_view_id(coverityRestApi, viewName) {
                     views = _a.sent();
                     possible = new Array();
                     viewId = null;
-                    console.log("Discovered views: " + views.views.length);
+                    console.log("Found (" + views.views.length + ") views.");
                     console.log("Looking for view: " + viewName);
                     views.views.forEach(function (element) {
                         if (element.type && element.type == "issues") {
@@ -334,71 +381,38 @@ function find_issue_view_id(coverityRestApi, viewName) {
         });
     });
 }
-function set_task_status_from_defects(coverityRestApi, projectId, viewId) {
+function set_task_status_from_defects(coverityRestApi, projectId, viewId, issueStatus) {
     return __awaiter(this, void 0, void 0, function () {
-        var defects, issueStatus;
+        var defects;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log("Loading view.");
+                    console.log("Determining task status from defects.");
                     return [4 /*yield*/, coverityRestApi.findDefects(viewId, projectId)];
                 case 1:
                     defects = _a.sent();
                     console.log("Defects found: " + defects.viewContentsV1.totalRows);
                     if (defects.totalRows > 0) {
-                        issueStatus = tl.getInput("issueStatus", true);
+                        console.log("Setting status from defects.");
                         if (issueStatus == "success") {
-                            return [2 /*return*/, null];
+                            console.log("Desired status was success. Will not change status.");
                         }
                         else if (issueStatus == "failure") {
+                            console.log("Desired status failure. Failing the task.");
                             tl.setResult(tl.TaskResult.Failed, 'Task markes as FAILURE, defects were found.');
-                            return [2 /*return*/, null];
                         }
                         else if (issueStatus == "unstable") {
+                            console.log("Desired status unstable. Marking as succeeded with issues.");
                             tl.setResult(tl.TaskResult.SucceededWithIssues, 'Task marked as UNSTABLE, defects were found.');
-                            return [2 /*return*/, null];
                         }
                         else {
                             tl.setResult(tl.TaskResult.Failed, 'Unknown build status type: ' + issueStatus);
-                            return [2 /*return*/, null];
                         }
                     }
+                    else {
+                        console.log("Will not set status, no defects were found.");
+                    }
                     return [2 /*return*/];
-            }
-        });
-    });
-}
-function run_commands(bin, buildDirectory, commands, env) {
-    return __awaiter(this, void 0, void 0, function () {
-        var _i, commands_1, command, commandRun, e_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    console.log("Will run coverity tools:" + commands.length);
-                    _i = 0, commands_1 = commands;
-                    _a.label = 1;
-                case 1:
-                    if (!(_i < commands_1.length)) return [3 /*break*/, 7];
-                    command = commands_1[_i];
-                    console.log("Running coverity tool:" + command.tool);
-                    _a.label = 2;
-                case 2:
-                    _a.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, coverityRunner.runCoverityCommand(bin, buildDirectory, command, env)];
-                case 3:
-                    commandRun = _a.sent();
-                    return [3 /*break*/, 5];
-                case 4:
-                    e_1 = _a.sent();
-                    console.log("Failed to run coverity tool.");
-                    return [3 /*break*/, 5];
-                case 5:
-                    console.log("Finished running coverity tool.");
-                    _a.label = 6;
-                case 6:
-                    _i++;
-                    return [3 /*break*/, 1];
-                case 7: return [2 /*return*/];
             }
         });
     });

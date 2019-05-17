@@ -19,10 +19,10 @@ async function run() {
         console.log("Verifying ADO inputs.");
         var verified_inputs = await verify_inputs(inputs);
 
-        console.log("Preparing to run Coverity commands.");
         console.log("Using working directory: " + inputs.workingDir);
         console.log("Using intermediate directory: " + inputs.idir);
    
+        console.log(`Setting up the environment for coverity commands.`);
         var env: CoverityTypes.CoverityEnvironment = {
             coverityToolHome: bin, 
             username: inputs.username,
@@ -34,19 +34,27 @@ async function run() {
             view: inputs.viewName,
             change_set: undefined
         };
+        var variables = await coverityRunner.environmentToVariables(env);
 
-        await run_commands(bin, inputs.workingDir, inputs.commands, env);
-
+        console.log(`Will run (${inputs.commands.length}) coverity commands.`);
+        for (var command of inputs.commands) {
+            console.log(`Substituting (${command.commandMultiArgs.length}) arguments with coverity variables if applicable.`);
+            for (var i = 0; i < command.commandMultiArgs.length; i++){
+                command.commandMultiArgs[i] = await coverityRunner.replaceArg(variables, command.commandMultiArgs[i]);
+            }
+            console.log(`Running coverity command.`);
+            var commandRun = await coverityRunner.runCoverityCommand(bin, inputs.workingDir, command);
+        }
         console.log("Finished runnning commands.");
 
-        if (verified_inputs.issueId){
-            console.log("Preparing to check for defects.");
-            await set_task_status_from_defects(verified_inputs.coverityRestApi, verified_inputs.project.id.name, verified_inputs.issueId);
+        if (verified_inputs.issueId && inputs.issueStatus){
+            console.log("Will check for defects.");
+            await set_task_status_from_defects(verified_inputs.coverityRestApi, verified_inputs.project.id.name, verified_inputs.issueId, inputs.issueStatus);
         } else {
             console.log("Will not check for defects.");
         }
 
-        console.log("OVERALL STATUS: SUCCESS");
+        console.log("Finished Coverity for ADO.");
     }
     catch (err) {
         var text;
@@ -69,7 +77,8 @@ interface CoverityInputs {
     workingDir: string,
     idir: string,
     commands: CoverityTypes.CoverityCommand[],
-    viewName?: string
+    viewName?: string,
+    issueStatus?: string
 }
 
 interface CoverityVerifiedInputs {
@@ -115,6 +124,7 @@ async function verify_inputs(raw_input: CoverityInputs): Promise<CoverityVerifie
 }
 
 async function find_inputs(): Promise<CoverityInputs> {
+    console.log("Reading coverity service input.");
     var coverityService = tl.getInput('coverityService', true);
     const server: string = tl.getEndpointUrl(coverityService, false);
 
@@ -129,14 +139,24 @@ async function find_inputs(): Promise<CoverityInputs> {
     const projectName = tl.getInput('projectName', true);
     const streamName = tl.getInput('streamName', true);
 
-    const viewName = tl.getInput("issueView", false);
-    
+    console.log("Determining build and issue inputs.");
+    var viewName = undefined;
+    var issueStatus = undefined;
+    const checkIssues = tl.getInput("checkIssues", true);
+    if (checkIssues){
+        viewName = tl.getInput("issueView", false);
+        issueStatus = tl.getInput("issueStatus", true);
+    }
+
     const buildCommand = tl.getInput("buildCommand", false);
     const buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
     const idir: string = path.join(buildDirectory, "idir");
 
+    console.log("Parsing command inputs.");
+    
     var commands = new Array<CoverityTypes.CoverityCommand>();
     if (runType == "buildanalyzecommit"){
+        console.log("Parsing build analyze and commit inputs.");
         var cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
         cov_build.commandMultiArgs.push(buildCommand);
         commands.push(cov_build);
@@ -152,10 +172,14 @@ async function find_inputs(): Promise<CoverityInputs> {
         var cov_commit = new CoverityTypes.CoverityCommand("cov-commit-defects", ["--dir", idir, "--url", server, "--stream", streamName], array_with_value_or_empty(tl.getInput("covCommitArgs", false)));
         commands.push(cov_commit);
     } else if (runType == "custom"){
+        console.log("Parsing custom command inputs.");
         var rawCommands = customCommands.split("\n");
         rawCommands.forEach(command => {
-            var toolName = command.split(' ')[0];
-            commands.push(new CoverityTypes.CoverityCommand(toolName, [], [command]));
+            var parts = command.split(' ');
+            var toolName = parts[0];
+            var args = parts.slice(1);
+            console.log(`Parsed command with tool '${toolName}' and custom args of length ${args.length}`);
+            commands.push(new CoverityTypes.CoverityCommand(toolName, [], args));
         });
     } else {
         fail_and_throw('Unkown coverity run type: ' + runType);
@@ -170,7 +194,8 @@ async function find_inputs(): Promise<CoverityInputs> {
         workingDir: buildDirectory,
         idir: idir,
         commands: commands,
-        viewName: viewName
+        viewName: viewName,
+        issueStatus: issueStatus
     };
 }
 
@@ -188,7 +213,7 @@ function fail_and_throw(msg:string) {
 }
 
 async function connect_soap(server:string, username:string, password:string) : Promise<CoverityTypes.CoveritySoapApi> {
-    console.log("Communicating over soap to:" + server);
+    console.log("Testing connection over soap.");
 
     var connected = await coveritySoapApi.connectAsync(server, username, password);
     if (!connected || !(coveritySoapApi.client)) {
@@ -201,7 +226,7 @@ async function connect_soap(server:string, username:string, password:string) : P
 }
 
 async function connect_rest(server:string, username:string, password:string) : Promise<CoverityTypes.CoverityRestApi>{
-    console.log("Communicating over rest to:" + server);
+    console.log("Testing connection over rest.");
     var connected = await coverityRestApi.connectAsync(server, username, password);
     if (!connected || !(coverityRestApi.auth)) {
         fail_and_throw('Could not connect to coverity server to find issues.');
@@ -212,6 +237,7 @@ async function connect_rest(server:string, username:string, password:string) : P
 }
 
 async function find_project_and_stream(coveritySoapApi: CoverityTypes.CoveritySoapApi, projectName: string, streamName: string): Promise<ProjectAndStream> {
+    console.log("Finding project and stream.");
     var project = await coveritySoapApi.findProjectAsync(projectName);
     if (project) {
         console.log("Found project.");
@@ -241,8 +267,8 @@ async function find_issue_view_id(coverityRestApi: CoverityTypes.CoverityRestApi
     var views = await coverityRestApi.findViews();
     var possible = new Array<string>();
     var viewId:any = null;
-    console.log("Discovered views: " + views.views.length);
-    console.log("Looking for view: " + viewName);
+    console.log(`Found (${views.views.length}) views.`);
+    console.log(`Looking for view: ${viewName}`);
     views.views.forEach((element:any) => {
         if (element.type && element.type == "issues"){
             if (element.name == viewName){
@@ -261,37 +287,25 @@ async function find_issue_view_id(coverityRestApi: CoverityTypes.CoverityRestApi
     return viewId;
 }
 
-async function set_task_status_from_defects(coverityRestApi:CoverityTypes.CoverityRestApi, projectId: string, viewId: string) {
-    console.log("Loading view.");
+async function set_task_status_from_defects(coverityRestApi:CoverityTypes.CoverityRestApi, projectId: string, viewId: string, issueStatus: string) {
+    console.log("Determining task status from defects.");
     var defects = await coverityRestApi.findDefects(viewId, projectId);
     console.log("Defects found: " + defects.viewContentsV1.totalRows);
     if (defects.totalRows > 0){
-        var issueStatus = tl.getInput("issueStatus", true);
+        console.log("Setting status from defects.");
         if (issueStatus == "success"){
-            return null;
+            console.log("Desired status was success. Will not change status.");
         } else if (issueStatus == "failure"){
+            console.log("Desired status failure. Failing the task.");
             tl.setResult(tl.TaskResult.Failed, 'Task markes as FAILURE, defects were found.');
-            return null;
         } else if (issueStatus == "unstable"){
+            console.log("Desired status unstable. Marking as succeeded with issues.");
             tl.setResult(tl.TaskResult.SucceededWithIssues, 'Task marked as UNSTABLE, defects were found.');
-            return null;                
         } else {
             tl.setResult(tl.TaskResult.Failed, 'Unknown build status type: ' + issueStatus);
-            return null;
         }
-    }
-}
-
-async function run_commands(bin:string, buildDirectory:string, commands:Array<CoverityTypes.CoverityCommand>, env: CoverityTypes.CoverityEnvironment) {
-    console.log("Will run coverity tools:" + commands.length);
-    for (var command of commands) {
-        console.log("Running coverity tool:" + command.tool);
-        try {
-            var commandRun = await coverityRunner.runCoverityCommand(bin, buildDirectory, command, env);
-        } catch (e){
-            console.log("Failed to run coverity tool.");
-        }
-        console.log("Finished running coverity tool.");
+    } else {
+        console.log("Will not set status, no defects were found.");
     }
 }
 
