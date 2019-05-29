@@ -74,8 +74,7 @@ function run() {
                         project: inputs.projectName,
                         stream: inputs.streamName,
                         idir: inputs.idir,
-                        view: inputs.viewName,
-                        change_set: undefined
+                        view: inputs.viewName
                     };
                     return [4 /*yield*/, coverityRunner.environmentToVariables(env)];
                 case 4:
@@ -183,7 +182,7 @@ function verify_inputs(raw_input) {
 }
 function find_inputs() {
     return __awaiter(this, void 0, void 0, function () {
-        var coverityService, server, username, password, runType, analysisType, customCommands, projectName, streamName, viewName, issueStatus, checkIssues, buildCommand, buildDirectory, idir, commands, cov_build, cov_middle, cov_middle, cov_commit, rawCommands;
+        var coverityService, server, username, password, runType, projectName, streamName, viewName, issueStatus, checkIssues, buildDirectory, idir, commands, analysisType, buildCommand, cov_build, cov_middle, cov_middle, cov_commit, customCommands, rawCommands;
         return __generator(this, function (_a) {
             console.log("Reading coverity service input.");
             coverityService = tl.getInput('coverityService', true);
@@ -191,8 +190,6 @@ function find_inputs() {
             username = tl.getEndpointAuthorizationParameter(coverityService, 'username', false);
             password = tl.getEndpointAuthorizationParameter(coverityService, 'password', false);
             runType = tl.getInput('coverityRunType', true);
-            analysisType = tl.getInput('coverityAnalysisType', true);
-            customCommands = tl.getInput('customCoverityCommands', true);
             projectName = tl.getInput('projectName', true);
             streamName = tl.getInput('streamName', true);
             console.log("Determining build and issue inputs.");
@@ -203,12 +200,15 @@ function find_inputs() {
                 viewName = tl.getInput("issueView", false);
                 issueStatus = tl.getInput("issueStatus", true);
             }
-            buildCommand = tl.getInput("buildCommand", false);
-            buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
-            idir = path.join(buildDirectory, "idir");
             console.log("Parsing command inputs.");
+            buildDirectory = undefined;
+            idir = undefined;
             commands = new Array();
             if (runType == "buildanalyzecommit") {
+                analysisType = tl.getInput('coverityAnalysisType', true);
+                buildCommand = tl.getInput("buildCommand", false);
+                buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
+                idir = path.join(buildDirectory, "idir");
                 console.log("Parsing build analyze and commit inputs.");
                 cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
                 cov_build.commandMultiArgs.push(buildCommand);
@@ -229,6 +229,7 @@ function find_inputs() {
             }
             else if (runType == "custom") {
                 console.log("Parsing custom command inputs.");
+                customCommands = tl.getInput('customCoverityCommands', true);
                 rawCommands = customCommands.split("\n");
                 rawCommands.forEach(function (command) {
                     var parts = command.split(' ');

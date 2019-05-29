@@ -124,7 +124,6 @@ export interface CoverityEnvironment {
     url:string, 
     project:string,
     stream:string,
-    idir: string
-    view?:string,
-    change_set?: string
+    idir?: string
+    view?:string
 }

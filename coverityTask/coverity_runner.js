@@ -49,8 +49,7 @@ function environmentToVariables(covEnv) {
                 "COV_PROJECT": covEnv.project,
                 "COV_STREAM": covEnv.stream,
                 "COV_VIEW": covEnv.view,
-                "COV_DIR": covEnv.idir,
-                "CHANGE_SET": covEnv.change_set
+                "COV_DIR": covEnv.idir
             };
             set = [];
             for (e in env) {

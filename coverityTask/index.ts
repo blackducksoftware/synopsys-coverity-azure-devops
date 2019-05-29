@@ -31,8 +31,7 @@ async function run() {
             project: inputs.projectName,
             stream: inputs.streamName,
             idir: inputs.idir,
-            view: inputs.viewName,
-            change_set: undefined
+            view: inputs.viewName
         };
         var variables = await coverityRunner.environmentToVariables(env);
 
@@ -74,9 +73,9 @@ interface CoverityInputs {
     password: string,
     projectName: string, 
     streamName: string,
-    workingDir: string,
-    idir: string,
     commands: CoverityTypes.CoverityCommand[],
+    workingDir?: string,
+    idir?: string,
     viewName?: string,
     issueStatus?: string
 }
@@ -132,10 +131,7 @@ async function find_inputs(): Promise<CoverityInputs> {
     const password: string = tl.getEndpointAuthorizationParameter(coverityService, 'password', false);
 
     const runType = tl.getInput('coverityRunType', true);
-    const analysisType = tl.getInput('coverityAnalysisType', true);
-
-    const customCommands = tl.getInput('customCoverityCommands', true);
-    
+   
     const projectName = tl.getInput('projectName', true);
     const streamName = tl.getInput('streamName', true);
 
@@ -148,31 +144,36 @@ async function find_inputs(): Promise<CoverityInputs> {
         issueStatus = tl.getInput("issueStatus", true);
     }
 
-    const buildCommand = tl.getInput("buildCommand", false);
-    const buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
-    const idir: string = path.join(buildDirectory, "idir");
 
     console.log("Parsing command inputs.");
     
+    var buildDirectory: (string|undefined) = undefined;
+    var idir: (string|undefined) = undefined;
     var commands = new Array<CoverityTypes.CoverityCommand>();
     if (runType == "buildanalyzecommit"){
+        const analysisType = tl.getInput('coverityAnalysisType', true);
+        const buildCommand = tl.getInput("buildCommand", false);
+        buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
+        idir = path.join(buildDirectory!, "idir");
+            
         console.log("Parsing build analyze and commit inputs.");
-        var cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
+        var cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir!], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
         cov_build.commandMultiArgs.push(buildCommand);
         commands.push(cov_build);
         if (analysisType == "full"){
-            var cov_middle = new CoverityTypes.CoverityCommand("cov-analyze", ["--dir", idir], array_with_value_or_empty(tl.getInput("covAnalyzeArgs", false)));
+            var cov_middle = new CoverityTypes.CoverityCommand("cov-analyze", ["--dir", idir!], array_with_value_or_empty(tl.getInput("covAnalyzeArgs", false)));
             commands.push(cov_middle);
         }else if (analysisType == "incremental"){
-            var cov_middle = new CoverityTypes.CoverityCommand("cov-run-desktop", ["--dir", idir, "--url", server, "--stream", streamName], array_with_value_or_empty(tl.getInput("covDesktopArgs", false)));
+            var cov_middle = new CoverityTypes.CoverityCommand("cov-run-desktop", ["--dir", idir!, "--url", server, "--stream", streamName], array_with_value_or_empty(tl.getInput("covDesktopArgs", false)));
             commands.push(cov_middle);
         } else {
             fail_and_throw('Unkown coverity analysis type: ' + runType);
         }
-        var cov_commit = new CoverityTypes.CoverityCommand("cov-commit-defects", ["--dir", idir, "--url", server, "--stream", streamName], array_with_value_or_empty(tl.getInput("covCommitArgs", false)));
+        var cov_commit = new CoverityTypes.CoverityCommand("cov-commit-defects", ["--dir", idir!, "--url", server, "--stream", streamName], array_with_value_or_empty(tl.getInput("covCommitArgs", false)));
         commands.push(cov_commit);
     } else if (runType == "custom"){
         console.log("Parsing custom command inputs.");
+        const customCommands = tl.getInput('customCoverityCommands', true);
         var rawCommands = customCommands.split("\n");
         rawCommands.forEach(command => {
             var parts = command.split(' ');
