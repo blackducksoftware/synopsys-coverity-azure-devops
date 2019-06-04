@@ -2,6 +2,8 @@ var request = require("request-promise-native");
 import CoverityTypes = require("./coverity_types");
 var urljoin = require('url-join');
 
+//move url join to static class.
+
 var coverity_api: CoverityTypes.CoverityRestApi = {
     connectAsync: async function (server:string, username:string, password:string): Promise<boolean> {
         this.auth = "Basic " + new Buffer(username + ":" + password).toString("base64");

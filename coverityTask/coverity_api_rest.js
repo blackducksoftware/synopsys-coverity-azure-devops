@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var request = require("request-promise-native");
 var urljoin = require('url-join');
+//move url join to static class.
 var coverity_api = {
     connectAsync: function (server, username, password) {
         return __awaiter(this, void 0, void 0, function () {

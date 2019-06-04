@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var tl = require("azure-pipelines-task-lib/task");
 var coverityInstallation = require("./coverity_installation");
+//Require a library that then imports the sub libraries.
 function environmentToVariables(covEnv) {
     return __awaiter(this, void 0, void 0, function () {
         var env, set, e;

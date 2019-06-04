@@ -82,6 +82,8 @@ export interface IssueView {
     name: string;
 }
 
+//Move the below to their own area.
+
 export class CoverityCommand {
     tool: string;
     commandArgs: string[] = [];

@@ -384,7 +384,7 @@ function find_issue_view_id(coverityRestApi, viewName) {
 }
 function set_task_status_from_defects(coverityRestApi, projectId, viewId, issueStatus) {
     return __awaiter(this, void 0, void 0, function () {
-        var defects;
+        var defects, rows;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -392,8 +392,9 @@ function set_task_status_from_defects(coverityRestApi, projectId, viewId, issueS
                     return [4 /*yield*/, coverityRestApi.findDefects(viewId, projectId)];
                 case 1:
                     defects = _a.sent();
-                    console.log("Defects found: " + defects.viewContentsV1.totalRows);
-                    if (defects.totalRows > 0) {
+                    rows = defects.viewContentsV1.totalRows;
+                    console.log("Defects found: " + rows);
+                    if (rows > 0) {
                         console.log("Setting status from defects.");
                         if (issueStatus == "success") {
                             console.log("Desired status was success. Will not change status.");
@@ -407,6 +408,7 @@ function set_task_status_from_defects(coverityRestApi, projectId, viewId, issueS
                             tl.setResult(tl.TaskResult.SucceededWithIssues, 'Task marked as UNSTABLE, defects were found.');
                         }
                         else {
+                            console.log("Unknown status build type.");
                             tl.setResult(tl.TaskResult.Failed, 'Unknown build status type: ' + issueStatus);
                         }
                     }

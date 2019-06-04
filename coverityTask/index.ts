@@ -291,8 +291,9 @@ async function find_issue_view_id(coverityRestApi: CoverityTypes.CoverityRestApi
 async function set_task_status_from_defects(coverityRestApi:CoverityTypes.CoverityRestApi, projectId: string, viewId: string, issueStatus: string) {
     console.log("Determining task status from defects.");
     var defects = await coverityRestApi.findDefects(viewId, projectId);
-    console.log("Defects found: " + defects.viewContentsV1.totalRows);
-    if (defects.totalRows > 0){
+    var rows = defects.viewContentsV1.totalRows;
+    console.log("Defects found: " + rows);
+    if (rows > 0){
         console.log("Setting status from defects.");
         if (issueStatus == "success"){
             console.log("Desired status was success. Will not change status.");
@@ -303,6 +304,7 @@ async function set_task_status_from_defects(coverityRestApi:CoverityTypes.Coveri
             console.log("Desired status unstable. Marking as succeeded with issues.");
             tl.setResult(tl.TaskResult.SucceededWithIssues, 'Task marked as UNSTABLE, defects were found.');
         } else {
+            console.log("Unknown status build type.");
             tl.setResult(tl.TaskResult.Failed, 'Unknown build status type: ' + issueStatus);
         }
     } else {

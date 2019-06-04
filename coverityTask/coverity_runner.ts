@@ -4,6 +4,7 @@ import trm = require('azure-pipelines-task-lib/toolrunner');
 import CoverityTypes = require("./coverity_types");
 var coverityInstallation = require("./coverity_installation");
 
+//Require a library that then imports the sub libraries.
 
 async function environmentToVariables(covEnv: CoverityTypes.CoverityEnvironment): Promise<any> {
     var env:any = {
@@ -41,7 +42,7 @@ async function runCoverityCommand(bin: string, cwd: string, command: CoverityTyp
     console.log("Searching for coverity tool: " + command.tool);
 
     var tool = coverityInstallation.findCoverityTool(bin, command.tool);
-    if (tool){
+    if (tool) {
         console.log("Found tool: " + tool);
     } else {
         throw 'Coverity tool ' + command.tool + ' could not be found.';
