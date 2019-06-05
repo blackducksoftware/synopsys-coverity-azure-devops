@@ -125,8 +125,9 @@ async function verify_inputs(raw_input: CoverityInputs): Promise<CoverityVerifie
 async function find_inputs(): Promise<CoverityInputs> {
     console.log("Reading coverity service input.");
     var coverityService = tl.getInput('coverityService', true);
-    const server: string = tl.getEndpointUrl(coverityService, false);
 
+    //The following boolean is OPTIONAL, not required, unlike all the other booleans.
+    const server: string = tl.getEndpointUrl(coverityService, false);
     const username: string = tl.getEndpointAuthorizationParameter(coverityService, 'username', false);
     const password: string = tl.getEndpointAuthorizationParameter(coverityService, 'password', false);
 
@@ -138,9 +139,9 @@ async function find_inputs(): Promise<CoverityInputs> {
     console.log("Determining build and issue inputs.");
     var viewName = undefined;
     var issueStatus = undefined;
-    const checkIssues = tl.getInput("checkIssues", true);
+    const checkIssues = tl.getBoolInput("checkIssues", true);
     if (checkIssues){
-        viewName = tl.getInput("issueView", false);
+        viewName = tl.getInput("issueView", true);
         issueStatus = tl.getInput("issueStatus", true);
     }
 

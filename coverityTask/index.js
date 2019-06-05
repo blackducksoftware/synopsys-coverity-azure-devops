@@ -195,9 +195,9 @@ function find_inputs() {
             console.log("Determining build and issue inputs.");
             viewName = undefined;
             issueStatus = undefined;
-            checkIssues = tl.getInput("checkIssues", true);
+            checkIssues = tl.getBoolInput("checkIssues", true);
             if (checkIssues) {
-                viewName = tl.getInput("issueView", false);
+                viewName = tl.getInput("issueView", true);
                 issueStatus = tl.getInput("issueStatus", true);
             }
             console.log("Parsing command inputs.");

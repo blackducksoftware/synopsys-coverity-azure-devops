@@ -83,6 +83,7 @@ export interface IssueView {
 }
 
 //Move the below to their own area.
+//Maybe sort things a little more.
 
 export class CoverityCommand {
     tool: string;

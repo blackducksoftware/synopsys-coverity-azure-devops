@@ -1,6 +1,7 @@
 "use strict";
 exports.__esModule = true;
 //Move the below to their own area.
+//Maybe sort things a little more.
 var CoverityCommand = /** @class */ (function () {
     function CoverityCommand(tool, commandArgs, commandMultiArgs) {
         this.commandArgs = [];
