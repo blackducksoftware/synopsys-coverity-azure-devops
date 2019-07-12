@@ -74,6 +74,7 @@ interface CoverityInputs {
     projectName: string, 
     streamName: string,
     commands: CoverityTypes.CoverityCommand[],
+    allowUntrusted: boolean,
     workingDir?: string,
     idir?: string,
     viewName?: string,
@@ -103,8 +104,8 @@ async function find_coverity_bin(): Promise<string> {
 }
 
 async function verify_inputs(raw_input: CoverityInputs): Promise<CoverityVerifiedInputs> {
-    var soapClient = await connect_soap(raw_input.server, raw_input.username, raw_input.password);
-    var restClient = await connect_rest(raw_input.server, raw_input.username, raw_input.password);
+    var soapClient = await connect_soap(raw_input.server, raw_input.username, raw_input.password, raw_input.allowUntrusted);
+    var restClient = await connect_rest(raw_input.server, raw_input.username, raw_input.password, raw_input.allowUntrusted);
 
     var project_and_stream = await find_project_and_stream(soapClient, raw_input.projectName, raw_input.streamName);
     var issue_view_id;
@@ -187,6 +188,8 @@ async function find_inputs(): Promise<CoverityInputs> {
         fail_and_throw('Unkown coverity run type: ' + runType);
     }
 
+    var allowUntrusted: boolean = tl.getBoolInput("allowUntrusted", true);
+
     return {
         server: server,
         username: username,
@@ -197,7 +200,8 @@ async function find_inputs(): Promise<CoverityInputs> {
         idir: idir,
         commands: commands,
         viewName: viewName,
-        issueStatus: issueStatus
+        issueStatus: issueStatus,
+        allowUntrusted: allowUntrusted
     };
 }
 
@@ -214,10 +218,10 @@ function fail_and_throw(msg:string) {
     throw msg;
 }
 
-async function connect_soap(server:string, username:string, password:string) : Promise<CoverityTypes.CoveritySoapApi> {
+async function connect_soap(server:string, username:string, password:string, allowUntrusted: boolean) : Promise<CoverityTypes.CoveritySoapApi> {
     console.log("Testing connection over soap.");
 
-    var connected = await coveritySoapApi.connectAsync(server, username, password);
+    var connected = await coveritySoapApi.connectAsync(server, username, password, allowUntrusted);
     if (!connected || !(coveritySoapApi.client)) {
         fail_and_throw('Could not connect to coverity server.');
     } else {
@@ -227,9 +231,9 @@ async function connect_soap(server:string, username:string, password:string) : P
     return coveritySoapApi;
 }
 
-async function connect_rest(server:string, username:string, password:string) : Promise<CoverityTypes.CoverityRestApi>{
+async function connect_rest(server:string, username:string, password:string, allowUntrusted: boolean) : Promise<CoverityTypes.CoverityRestApi>{
     console.log("Testing connection over rest.");
-    var connected = await coverityRestApi.connectAsync(server, username, password);
+    var connected = await coverityRestApi.connectAsync(server, username, password, allowUntrusted);
     if (!connected || !(coverityRestApi.auth)) {
         fail_and_throw('Could not connect to coverity server to find issues.');
     } else {

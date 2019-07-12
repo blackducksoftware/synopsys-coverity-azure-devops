@@ -3,7 +3,7 @@ import CoverityTypes = require("./coverity_types");
 var urljoin = require('url-join');
 
 var coverity_api: CoverityTypes.CoveritySoapApi = {
-    connectAsync: async function (server:string, username:string, password:string): Promise<boolean> {
+    connectAsync: async function (server:string, username:string, password:string, allowInsecure:boolean): Promise<boolean> {
         var url = urljoin(server, "/ws/v9/configurationservice?wsdl");
         var soapClient = await soap.createClientAsync(url) as any;
         this.client = soapClient as CoverityTypes.CoverityClient;
@@ -11,6 +11,7 @@ var coverity_api: CoverityTypes.CoveritySoapApi = {
         var options = {
             hasNonce: false,
             digestPassword: false,
+            rejectUnauthorized: !allowInsecure //if (allow insecure) { }
         };
         
         var wsSecurity = new soap.WSSecurity(username, password, options)

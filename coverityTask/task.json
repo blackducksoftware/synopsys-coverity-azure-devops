@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 3
+        "Patch": 4
     },
     "instanceNameFormat": "Synopsys Coverity $(buildCommand)",
     "groups": [
@@ -27,6 +27,11 @@
             "name": "build",
             "displayName": "Build",
             "isExpanded": true
+        },
+        {
+            "name": "advanced",
+            "displayName": "Advanced",
+            "isExpanded": false
         }
     ],
     "inputs": [
@@ -182,6 +187,14 @@
             "defaultValue": "",
             "helpMarkDown": "List of Coverity commands seperated by newlines. Commands should look like cov-build or cov-analyze. All ADO environment variables are available using $(variable) as well as Coverity Extension environment variables using $coverityvariable.",
             "visibleRule": "coverityRunType = custom"
+        },
+        {
+            "name": "allowUntrusted",
+            "type": "boolean",
+            "label": "Allow self signed certificates",
+            "groupName": "advanced",
+            "defaultValue": false,
+            "helpMarkDown": "If enabled, this task will allow connection to a self signed coverity instance."
         }
     ],
     "execution": {

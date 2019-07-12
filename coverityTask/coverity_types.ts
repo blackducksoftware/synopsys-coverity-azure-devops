@@ -98,7 +98,7 @@ export class CoverityCommand {
 }
 
 export interface CoveritySoapApi {
-    connectAsync(url:string, username: string, password: string): Promise<boolean>,
+    connectAsync(url:string, username: string, password: string, allowInsecure:boolean): Promise<boolean>,
     findProjectAsync(name:string):Promise<any>,
     findStreamAsync(project:any, name:string):Promise<any>,
     createProjectAsync(projectSpec:any):Promise<any>,
@@ -113,7 +113,7 @@ export interface CoverityClient extends soap.Client {
 }
 
 export interface CoverityRestApi {
-    connectAsync(url:string, username: string, password: string): Promise<boolean>,
+    connectAsync(url:string, username: string, password: string, allowInsecure:boolean): Promise<boolean>,
     findViews():Promise<IssueViewList>,
     findDefects(project:any, name:string):Promise<any>,
     auth?:string
