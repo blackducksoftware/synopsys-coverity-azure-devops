@@ -155,10 +155,10 @@ function verify_inputs(raw_input) {
         var soapClient, restClient, project_and_stream, issue_view_id;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, connect_soap(raw_input.server, raw_input.username, raw_input.password)];
+                case 0: return [4 /*yield*/, connect_soap(raw_input.server, raw_input.username, raw_input.password, raw_input.allowUntrusted)];
                 case 1:
                     soapClient = _a.sent();
-                    return [4 /*yield*/, connect_rest(raw_input.server, raw_input.username, raw_input.password)];
+                    return [4 /*yield*/, connect_rest(raw_input.server, raw_input.username, raw_input.password, raw_input.allowUntrusted)];
                 case 2:
                     restClient = _a.sent();
                     return [4 /*yield*/, find_project_and_stream(soapClient, raw_input.projectName, raw_input.streamName)];
@@ -182,7 +182,7 @@ function verify_inputs(raw_input) {
 }
 function find_inputs() {
     return __awaiter(this, void 0, void 0, function () {
-        var coverityService, server, username, password, runType, projectName, streamName, viewName, issueStatus, checkIssues, buildDirectory, idir, commands, analysisType, buildCommand, cov_build, cov_middle, cov_middle, cov_commit, customCommands, rawCommands;
+        var coverityService, server, username, password, runType, projectName, streamName, viewName, issueStatus, checkIssues, buildDirectory, idir, commands, analysisType, buildCommand, cov_build, cov_middle, cov_middle, cov_commit, customCommands, rawCommands, allowUntrusted;
         return __generator(this, function (_a) {
             console.log("Reading coverity service input.");
             coverityService = tl.getInput('coverityService', true);
@@ -242,6 +242,7 @@ function find_inputs() {
             else {
                 fail_and_throw('Unkown coverity run type: ' + runType);
             }
+            allowUntrusted = tl.getBoolInput("allowUntrusted", true);
             return [2 /*return*/, {
                     server: server,
                     username: username,
@@ -252,7 +253,8 @@ function find_inputs() {
                     idir: idir,
                     commands: commands,
                     viewName: viewName,
-                    issueStatus: issueStatus
+                    issueStatus: issueStatus,
+                    allowUntrusted: allowUntrusted
                 }];
         });
     });
@@ -269,14 +271,14 @@ function fail_and_throw(msg) {
     tl.setResult(tl.TaskResult.Failed, msg);
     throw msg;
 }
-function connect_soap(server, username, password) {
+function connect_soap(server, username, password, allowUntrusted) {
     return __awaiter(this, void 0, void 0, function () {
         var connected;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log("Testing connection over soap.");
-                    return [4 /*yield*/, coveritySoapApi.connectAsync(server, username, password)];
+                    return [4 /*yield*/, coveritySoapApi.connectAsync(server, username, password, allowUntrusted)];
                 case 1:
                     connected = _a.sent();
                     if (!connected || !(coveritySoapApi.client)) {
@@ -290,14 +292,14 @@ function connect_soap(server, username, password) {
         });
     });
 }
-function connect_rest(server, username, password) {
+function connect_rest(server, username, password, allowUntrusted) {
     return __awaiter(this, void 0, void 0, function () {
         var connected;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log("Testing connection over rest.");
-                    return [4 /*yield*/, coverityRestApi.connectAsync(server, username, password)];
+                    return [4 /*yield*/, coverityRestApi.connectAsync(server, username, password, allowUntrusted)];
                 case 1:
                     connected = _a.sent();
                     if (!connected || !(coverityRestApi.auth)) {

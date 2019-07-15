@@ -39,11 +39,12 @@ var request = require("request-promise-native");
 var urljoin = require('url-join');
 //move url join to static class.
 var coverity_api = {
-    connectAsync: function (server, username, password) {
+    connectAsync: function (server, username, password, allowInsecure) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 this.auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
                 this.server = server;
+                this.allowInsecure = allowInsecure;
                 return [2 /*return*/, true];
             });
         });
@@ -55,7 +56,7 @@ var coverity_api = {
                 switch (_a.label) {
                     case 0:
                         url = urljoin(this.server, "/api/views/v1");
-                        return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true })];
+                        return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true, insecure: this.allowInsecure })];
                     case 1:
                         response = _a.sent();
                         return [2 /*return*/, response];
@@ -72,7 +73,7 @@ var coverity_api = {
                         console.log("Getting views for stream " + streamId.toString() + " and project " + projectId.toString());
                         url = urljoin(this.server, "/api/viewContents/issues/v1/", streamId.toString(), "?projectId=" + projectId.toString());
                         console.log("Fetching url: " + url);
-                        return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true })];
+                        return [4 /*yield*/, request({ url: url, headers: { "Authorization": this.auth }, json: true, insecure: this.allowInsecure })];
                     case 1:
                         response = _a.sent();
                         return [2 /*return*/, response];
