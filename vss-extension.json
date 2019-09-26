@@ -2,8 +2,9 @@
     "manifestVersion": 1,
     "id": "synopsys-coverity-azure-devops",
     "name": "Synopsys Coverity Azure DevOps",
-    "version": "1.0.0.9",
+    "version": "1.0.0.10",
     "publisher": "synopsys-coverity",
+    "public": true,
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
