@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "synopsys-coverity-azure-devops",
     "name": "Synopsys Coverity Azure DevOps",
-    "version": "1.0.0.8",
+    "version": "1.0.0.9",
     "publisher": "synopsys-coverity",
     "targets": [
         {
@@ -21,6 +21,11 @@
             "path": "coverityTask"
         }
     ],
+    "content": {
+        "details": {
+            "path": "overview.md"
+        }
+    },
     "contributions": [
         {
             "id": "coverity-task",
