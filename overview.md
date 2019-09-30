@@ -1,13 +1,8 @@
 ## Overview ##
 
-Coverity is a risk management tool designed to help you manage the logistics of using open source software in your organization.  
+Coverity is a static code analysis tool for use in finding and fixing vulnerabilities in in your organization’s source code.  As a Coverity and Azure DevOps user, the Synopsys Coverity Extension for Azure DevOps enables you to run a component scan in an Azure DevOps job and create projects and view the scan results in Coverity Connect. 
 
-As a Coverity and Azure DevOps user, Synopsys Coverity Extension for Azure DevOps enables you to:
-•	Run a component scan in an Azure DevOps job.
-•	Create projects and releases in Coverity through the Azure DevOps job.
-•	View the scan results on the Coverity server.
-
-Using the Synopsys Coverity Extension for Azure DevOps enables you to use Azure DevOps to automatically create Coverity projects from your Azure DevOps projects.
+Using the Synopsys Coverity Extension for Azure DevOps enables you to use Azure DevOps to minimize risk through Coverity’s information-rich system.
 
 ## Want to contribute? ##
 
