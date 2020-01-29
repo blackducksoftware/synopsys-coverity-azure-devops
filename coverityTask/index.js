@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -204,11 +205,11 @@ function find_inputs() {
             buildDirectory = undefined;
             idir = undefined;
             commands = new Array();
+            buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
+            idir = path.join(buildDirectory, "idir");
             if (runType == "buildanalyzecommit") {
                 analysisType = tl.getInput('coverityAnalysisType', true);
                 buildCommand = tl.getInput("buildCommand", false);
-                buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
-                idir = path.join(buildDirectory, "idir");
                 console.log("Parsing build analyze and commit inputs.");
                 cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
                 cov_build.commandMultiArgs.push(buildCommand);
