@@ -152,11 +152,12 @@ async function find_inputs(): Promise<CoverityInputs> {
     var buildDirectory: (string|undefined) = undefined;
     var idir: (string|undefined) = undefined;
     var commands = new Array<CoverityTypes.CoverityCommand>();
+
+    buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
+    idir = path.join(buildDirectory!, "idir");
     if (runType == "buildanalyzecommit"){
         const analysisType = tl.getInput('coverityAnalysisType', true);
         const buildCommand = tl.getInput("buildCommand", false);
-        buildDirectory = tl.getPathInput('coverityBuildDirectory', true, true);
-        idir = path.join(buildDirectory!, "idir");
             
         console.log("Parsing build analyze and commit inputs.");
         var cov_build = new CoverityTypes.CoverityCommand("cov-build", ["--dir", idir!], array_with_value_or_empty(tl.getInput("covBuildArgs", false)));
@@ -177,7 +178,7 @@ async function find_inputs(): Promise<CoverityInputs> {
         console.log("Parsing custom command inputs.");
         const customCommands = tl.getInput('customCoverityCommands', true);
         var rawCommands = customCommands.split("\n");
-        rawCommands.forEach(command => {
+        rawCommands.forEach((command: string) => {
             var parts = command.split(' ');
             var toolName = parts[0];
             var args = parts.slice(1);
