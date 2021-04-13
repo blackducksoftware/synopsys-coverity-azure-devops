@@ -118,6 +118,7 @@ export interface CoverityRestApi {
     findDefects(project:any, name:string):Promise<any>,
     auth?:string
     server?:string
+    allowInsecure?:boolean
 }
 
 export interface CoverityEnvironment {

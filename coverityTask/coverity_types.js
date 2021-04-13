@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+exports.CoverityCommand = void 0;
 //Move the below to their own area.
 //Maybe sort things a little more.
 var CoverityCommand = /** @class */ (function () {

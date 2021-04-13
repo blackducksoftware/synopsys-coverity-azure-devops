@@ -9,6 +9,13 @@ var coverity_api: CoverityTypes.CoverityRestApi = {
         this.auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
         this.server = server;
         this.allowInsecure = allowInsecure;
+
+         if (allowInsecure) {
+             request = request.defaults({
+                 strictSSL: false
+             });
+         }
+
         return true;
     },
     findViews: async function():Promise<CoverityTypes.IssueViewList> {
