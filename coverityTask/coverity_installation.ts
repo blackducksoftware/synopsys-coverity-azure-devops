@@ -40,7 +40,7 @@ function findCoverityVersion(versionFile: String): String {
     var versionLines = lines.map((line: String) => line.trim())
         .filter((line: String) => line.startsWith(versionPrefix))
         .map((line: String) => line.substring(versionPrefix.length));
-    if (versionLines.length == 1) {
+    if (versionLines.length > 0) {
         return versionLines[0];
     } else {
         throw `Unable to find coverity version from version file.`;
