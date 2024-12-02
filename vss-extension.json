@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
     "id": "synopsys-coverity-azure-devops",
-    "name": "Synopsys Coverity Azure DevOps",
+    "name": "[Deprecated] Synopsys Coverity Azure DevOps",
     "version": "1.0.9",
     "publisher": "synopsys-coverity",
     "public": true,
@@ -10,12 +10,18 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
+    "tags": [
+        "Deprecated",
+        "Black Duck",
+        "Coverity",
+        "Synopsys"
+    ],
     "description": "Tools for building Synopsys Coverity.",
     "categories": [
         "Azure Pipelines"
     ],
     "icons": {
-        "default": "images/synopsys.png"
+        "default": "images/blackduck.png"
     },
     "files": [
         {

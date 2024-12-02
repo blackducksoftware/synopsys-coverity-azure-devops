@@ -1,4 +1,6 @@
-# Synopsys-Coverity-Azure-DevOps
+# [DEPRECATED] Synopsys-Coverity-Azure-DevOps
+
+**Note:** This extension is deprecated and no longer supported. It is recommended that you migrate to our new <a href="">Black Duck Security Scan</a>. Instructions can be found <a href="<community url>">here</a>.
 
 Build with:
 tfx extension create --manifest-globs vss-extension.json
