@@ -1,7 +1,7 @@
 {
     "id": "ed48033d-8dad-4a5d-ab2d-07649079659e",
     "name": "synopsys-coverity",
-    "friendlyName": "Synopsys Coverity",
+    "friendlyName": "[DEPRECATED] Synopsys Coverity",
     "description": "The Azure Dev Ops plugin for Synopsys Coverity.",
     "helpMarkDown": "",
     "category": "Utility",
@@ -11,7 +11,7 @@
         "Minor": 0,
         "Patch": 9
     },
-    "instanceNameFormat": "Synopsys Coverity $(buildCommand)",
+    "instanceNameFormat": "[DEPRECATED] Synopsys Coverity $(buildCommand)",
     "groups": [
         {
             "name": "server",
