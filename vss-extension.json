@@ -11,10 +11,7 @@
         }
     ],
     "tags": [
-        "Deprecated",
-        "Black Duck",
-        "Coverity",
-        "Synopsys"
+        "Deprecated"
     ],
     "description": "Tools for building Synopsys Coverity.",
     "categories": [
