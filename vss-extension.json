@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
     "id": "synopsys-coverity-azure-devops",
-    "name": "[DEPRECATED] Synopsys Coverity Azure DevOps",
+    "name": "DEPRECATED: Synopsys Coverity Azure DevOps",
     "version": "1.0.9",
     "publisher": "synopsys-coverity",
     "public": true,
@@ -21,7 +21,7 @@
         "Azure Pipelines"
     ],
     "icons": {
-        "default": "images/blackduck.png"
+        "default": "images/synopsys.png"
     },
     "files": [
         {
