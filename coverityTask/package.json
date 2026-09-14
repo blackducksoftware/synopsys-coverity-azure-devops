@@ -22,7 +22,7 @@
     "compare-versions": "^3.4.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
-    "soap": "^0.26.0",
+    "soap": "^0.45.0",
     "url-join": "^4.0.0"
   },
   "devDependencies": {
